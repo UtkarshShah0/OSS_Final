@@ -1,0 +1,167 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Products</h1>
+    <p class="text-gray-600">Discover our amazing collection</p>
+  </div>
+
+  <!-- Search and Sort Bar -->
+  <div class="flex flex-col md:flex-row gap-4 mb-6">
+    <div class="flex-1">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="applyFilters()"
+        placeholder="Search products..."
+        class="input-field w-full"
+      />
+    </div>
+    <select [(ngModel)]="sortBy" (change)="onSortChange()" class="input-field md:w-48">
+      <option value="default">Sort by: Default</option>
+      <option value="price-low">Price: Low to High</option>
+      <option value="price-high">Price: High to Low</option>
+      <option value="rating">Highest Rated</option>
+      <option value="newest">Newest First</option>
+    </select>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    <!-- Sidebar Filters -->
+    <aside class="lg:w-64 flex-shrink-0">
+      <div class="card p-6 sticky top-20">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-900">Filters</h2>
+          <button (click)="clearFilters()" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+            Clear All
+          </button>
+        </div>
+
+        <!-- Categories -->
+        <div class="mb-6">
+          <h3 class="font-semibold text-gray-900 mb-3">Categories</h3>
+          <div class="space-y-2">
+            <button
+              *ngFor="let category of categories"
+              (click)="selectCategory(category.slug)"
+              [class.bg-primary-50]="selectedCategory === category.slug"
+              [class.text-primary-700]="selectedCategory === category.slug"
+              class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-sm"
+            >
+              {{ category.icon }} {{ category.name }}
+            </button>
+            <button
+              *ngIf="selectedCategory"
+              (click)="selectCategory('')"
+              class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-sm text-primary-600"
+            >
+              Clear Category
+            </button>
+          </div>
+        </div>
+
+        <!-- Price Range -->
+        <div class="mb-6">
+          <h3 class="font-semibold text-gray-900 mb-3">Price Range</h3>
+          <input
+            type="range"
+            [min]="priceRange.min"
+            [max]="maxPrice"
+            [(ngModel)]="currentPrice"
+            (input)="onPriceChange()"
+            class="w-full"
+          />
+          <div class="flex justify-between text-sm text-gray-600 mt-2">
+            <span>{{ formatPrice(priceRange.min) }}</span>
+            <span class="font-semibold text-primary-600">{{ formatPrice(currentPrice) }}</span>
+          </div>
+        </div>
+
+        <!-- Brands -->
+        <div class="mb-6">
+          <h3 class="font-semibold text-gray-900 mb-3">Brands</h3>
+          <div class="space-y-2 max-h-48 overflow-y-auto">
+            <label *ngFor="let brand of brands" class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+              <input
+                type="checkbox"
+                [checked]="selectedBrands.includes(brand)"
+                (change)="toggleBrand(brand)"
+                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span class="text-sm text-gray-700">{{ brand }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Results Count -->
+        <div class="pt-4 border-t border-gray-200">
+          <p class="text-sm text-gray-600">
+            <span class="font-semibold text-gray-900">{{ filteredProducts.length }}</span> products found
+          </p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Products Grid -->
+    <div class="flex-1">
+      <div *ngIf="filteredProducts.length === 0" class="text-center py-16">
+        <div class="text-6xl mb-4">🔍</div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
+        <p class="text-gray-600 mb-6">Try adjusting your filters</p>
+        <button (click)="clearFilters()" class="btn-primary">Clear Filters</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          *ngFor="let product of filteredProducts"
+          class="product-card group cursor-pointer"
+          [routerLink]="['/product', product.id]"
+        >
+          <div class="relative overflow-hidden rounded-lg mb-4 bg-gray-100">
+            <img
+              [src]="product.images[0]"
+              [alt]="product.name"
+              class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+              loading="lazy"
+            />
+            <div *ngIf="product.discount" class="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+              -{{ product.discount }}%
+            </div>
+            <div *ngIf="!product.inStock" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <span class="text-white font-bold text-lg">Out of Stock</span>
+            </div>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">{{ product.name }}</h3>
+          <p class="text-sm text-gray-600 mb-2">{{ product.brand }}</p>
+          <div class="flex items-center mb-2">
+            <div class="flex text-yellow-400">
+              <span *ngFor="let star of [1,2,3,4,5]">
+                <svg *ngIf="star <= product.rating" class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                </svg>
+                <svg *ngIf="star > product.rating" class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                </svg>
+              </span>
+            </div>
+            <span class="text-sm text-gray-600 ml-2">({{ product.reviewCount }})</span>
+          </div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-2xl font-bold text-gray-900">{{ formatPrice(product.price) }}</span>
+              <span *ngIf="product.originalPrice" class="text-sm text-gray-500 line-through ml-2">
+                {{ formatPrice(product.originalPrice) }}
+              </span>
+            </div>
+          </div>
+          <button
+            (click)="$event.stopPropagation(); addToCart(product)"
+            [disabled]="!product.inStock"
+            class="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

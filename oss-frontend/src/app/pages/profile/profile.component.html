@@ -1,0 +1,214 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">My Account</h1>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <!-- Sidebar -->
+    <div class="lg:col-span-1">
+      <div class="card p-6 sticky top-20">
+        <div class="text-center mb-6">
+          <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-3xl font-bold text-primary-600">{{ user?.name?.charAt(0) || 'U' }}</span>
+          </div>
+          <h2 class="text-xl font-bold text-gray-900">{{ user?.name }}</h2>
+          <p class="text-gray-600 text-sm">{{ user?.email }}</p>
+        </div>
+        
+        <nav class="space-y-2">
+          <button
+            (click)="setTab('profile')"
+            [class.bg-primary-50]="activeTab === 'profile'"
+            [class.text-primary-700]="activeTab === 'profile'"
+            class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Profile
+          </button>
+          <button
+            (click)="setTab('orders')"
+            [class.bg-primary-50]="activeTab === 'orders'"
+            [class.text-primary-700]="activeTab === 'orders'"
+            class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Orders
+          </button>
+          <button
+            (click)="setTab('addresses')"
+            [class.bg-primary-50]="activeTab === 'addresses'"
+            [class.text-primary-700]="activeTab === 'addresses'"
+            class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Addresses
+          </button>
+          <button
+            (click)="setTab('payments')"
+            [class.bg-primary-50]="activeTab === 'payments'"
+            [class.text-primary-700]="activeTab === 'payments'"
+            class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Payment Methods
+          </button>
+          <button
+            (click)="setTab('wishlist')"
+            [class.bg-primary-50]="activeTab === 'wishlist'"
+            [class.text-primary-700]="activeTab === 'wishlist'"
+            class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Wishlist
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="lg:col-span-3">
+      <!-- Profile Tab -->
+      <div *ngIf="activeTab === 'profile'" class="card p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Profile Information</h2>
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            <input [(ngModel)]="editedName" type="text" class="input-field" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input [(ngModel)]="editedEmail" type="email" class="input-field" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+            <input [(ngModel)]="editedPhone" type="tel" class="input-field" />
+          </div>
+          <button (click)="updateProfile()" class="btn-primary">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Orders Tab -->
+      <div *ngIf="activeTab === 'orders'" class="space-y-4">
+        <div *ngIf="orders.length === 0" class="card p-12 text-center">
+          <div class="text-6xl mb-4">📦</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">No orders yet</h3>
+          <p class="text-gray-600 mb-6">Start shopping to see your orders here</p>
+          <a routerLink="/products" class="btn-primary inline-block">Start Shopping</a>
+        </div>
+
+        <div *ngFor="let order of orders" class="card p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Order #{{ order.id }}</h3>
+              <p class="text-gray-600 text-sm">{{ formatDate(order.date) }}</p>
+            </div>
+            <span [class]="'px-3 py-1 rounded-full text-sm font-medium ' + getStatusColor(order.status)">
+              {{ order.status.charAt(0).toUpperCase() + order.status.slice(1) }}
+            </span>
+          </div>
+          
+          <div class="space-y-3 mb-4">
+            <div *ngFor="let item of order.items" class="flex items-center space-x-4">
+              <img [src]="item.productImage" [alt]="item.productName" class="w-16 h-16 object-cover rounded-lg" />
+              <div class="flex-1">
+                <h4 class="font-semibold text-gray-900">{{ item.productName }}</h4>
+                <p class="text-gray-600 text-sm">Quantity: {{ item.quantity }}</p>
+              </div>
+              <p class="font-semibold text-gray-900">{{ formatPrice(item.total) }}</p>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-200 pt-4 flex justify-between items-center">
+            <div>
+              <p class="text-sm text-gray-600">Total: <span class="text-lg font-bold text-gray-900">{{ formatPrice(order.total) }}</span></p>
+              <p *ngIf="order.trackingNumber" class="text-sm text-gray-600">Tracking: {{ order.trackingNumber }}</p>
+            </div>
+            <button *ngIf="order.status === 'pending' || order.status === 'confirmed'" class="btn-outline">
+              Cancel Order
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Addresses Tab -->
+      <div *ngIf="activeTab === 'addresses'" class="card p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Saved Addresses</h2>
+          <button class="btn-primary">Add New Address</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let address of user?.addresses" class="border-2 border-gray-200 rounded-lg p-4">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-semibold text-gray-900">{{ address.fullName }}</h3>
+              <span *ngIf="address.isDefault" class="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
+                Default
+              </span>
+            </div>
+            <p class="text-gray-600 text-sm">{{ address.addressLine1 }}</p>
+            <p *ngIf="address.addressLine2" class="text-gray-600 text-sm">{{ address.addressLine2 }}</p>
+            <p class="text-gray-600 text-sm">{{ address.city }}, {{ address.state }} {{ address.zipCode }}</p>
+            <p class="text-gray-600 text-sm">{{ address.country }}</p>
+            <p class="text-gray-600 text-sm mt-2">Phone: {{ address.phone }}</p>
+            <div class="mt-4 flex space-x-2">
+              <button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
+              <button class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Methods Tab -->
+      <div *ngIf="activeTab === 'payments'" class="card p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Payment Methods</h2>
+          <button class="btn-primary">Add New Payment Method</button>
+        </div>
+        <div class="space-y-4">
+          <div *ngFor="let method of user?.paymentMethods" class="border-2 border-gray-200 rounded-lg p-4">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-semibold text-gray-900">
+                  {{ method.type === 'card' ? '💳 Card' : '💼 Wallet' }}
+                </h3>
+                <p *ngIf="method.type === 'card'" class="text-gray-600">{{ method.cardNumber }}</p>
+                <p *ngIf="method.type === 'card'" class="text-gray-600">{{ method.cardHolder }}</p>
+              </div>
+              <span *ngIf="method.isDefault" class="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
+                Default
+              </span>
+            </div>
+            <div class="mt-4 flex space-x-2">
+              <button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
+              <button class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wishlist Tab -->
+      <div *ngIf="activeTab === 'wishlist'" class="space-y-4">
+        <div *ngIf="wishlistProducts.length === 0" class="card p-12 text-center">
+          <div class="text-6xl mb-4">❤️</div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Your wishlist is empty</h3>
+          <p class="text-gray-600 mb-6">Start adding products to your wishlist</p>
+          <a routerLink="/products" class="btn-primary inline-block">Browse Products</a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let product of wishlistProducts" class="product-card">
+            <div class="relative overflow-hidden rounded-lg mb-4 bg-gray-100">
+              <img
+                [src]="product.images[0]"
+                [alt]="product.name"
+                class="w-full h-64 object-cover"
+                [routerLink]="['/product', product.id]"
+              />
+              <button
+                (click)="removeFromWishlist(product.id)"
+                class="absolute top-2 right-2 bg-white rounded-full p-2 hover:bg-red-50"
+              >
+                ❤️
+              </button>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-2">{{ product.name }}</h3>
+            <p class="text-xl font-bold text-gray-900 mb-4">{{ formatPrice(product.price) }}</p>
+            <button [routerLink]="['/product', product.id]" class="w-full btn-primary">View Product</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

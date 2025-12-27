@@ -1,0 +1,42 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/auth/**,/users/**
+
+        - id: product-catalog
+          uri: lb://PRODUCT-CATALOG
+          predicates:
+            - Path=/products/**,/categories/**,/reviews/**
+
+        - id: cart-service
+          uri: lb://CART-SERVICE
+          predicates:
+            - Path=/cart/**,/checkout/**
+
+        - id: order-management-service
+          uri: lb://ORDER-MANAGEMENT-SERVICE
+          predicates:
+            - Path=/orders/**
+
+        - id: payment-processing-service
+          uri: lb://PAYMENT-PROCESSING-SERVICE
+          predicates:
+            - Path=/payments/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

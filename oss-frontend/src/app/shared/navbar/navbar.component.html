@@ -1,0 +1,110 @@
+<nav class="bg-white shadow-md sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo -->
+      <a routerLink="/" class="flex items-center space-x-2 text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
+        <span>🛍️</span>
+        <span class="hidden sm:inline">OSS</span>
+      </a>
+
+      <!-- Desktop Search -->
+      <div class="hidden md:flex flex-1 max-w-lg mx-8">
+        <div class="relative w-full">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="search()"
+            placeholder="Search products..."
+            class="w-full pl-10 pr-24 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <button
+            (click)="search()"
+            class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary-600 text-white px-4 py-1 rounded-md hover:bg-primary-700 transition-colors text-sm"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex items-center space-x-6">
+        <a routerLink="/products" routerLinkActive="text-primary-600" class="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+          Products
+        </a>
+        
+        <a routerLink="/cart" class="relative text-gray-700 hover:text-primary-600 transition-colors">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          <span *ngIf="cartCount > 0" class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {{ cartCount > 9 ? '9+' : cartCount }}
+          </span>
+        </a>
+
+        <div class="relative group" *ngIf="isAuthenticated">
+          <button class="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span class="hidden lg:inline">{{ user?.name || 'Account' }}</span>
+          </button>
+          <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+            <a routerLink="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+            <a routerLink="/profile" [queryParams]="{tab: 'orders'}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Orders</a>
+            <a routerLink="/profile" [queryParams]="{tab: 'wishlist'}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Wishlist</a>
+            <button (click)="logout()" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</button>
+          </div>
+        </div>
+
+        <a *ngIf="!isAuthenticated" routerLink="/login" class="btn-primary text-sm">
+          Login
+        </a>
+      </div>
+
+      <!-- Mobile menu button -->
+      <button (click)="toggleMenu()" class="md:hidden text-gray-700 hover:text-primary-600">
+        <svg *ngIf="!isMenuOpen" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg *ngIf="isMenuOpen" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Search -->
+    <div class="md:hidden pb-4">
+      <div class="relative">
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="search()"
+          placeholder="Search products..."
+          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
+        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div *ngIf="isMenuOpen" class="md:hidden border-t border-gray-200 bg-white">
+    <div class="px-4 pt-2 pb-4 space-y-2">
+      <a routerLink="/products" (click)="closeMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Products</a>
+      <a routerLink="/cart" (click)="closeMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg flex items-center justify-between">
+        <span>Cart</span>
+        <span *ngIf="cartCount > 0" class="bg-primary-600 text-white text-xs font-bold rounded-full px-2 py-1">{{ cartCount }}</span>
+      </a>
+      <a routerLink="/profile" (click)="closeMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Profile</a>
+      <a routerLink="/profile" [queryParams]="{tab: 'orders'}" (click)="closeMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Orders</a>
+      <a routerLink="/profile" [queryParams]="{tab: 'wishlist'}" (click)="closeMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Wishlist</a>
+      <a *ngIf="!isAuthenticated" routerLink="/login" (click)="closeMenu()" class="block px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg font-medium">Login</a>
+      <button *ngIf="isAuthenticated" (click)="logout(); closeMenu()" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Logout</button>
+    </div>
+  </div>
+</nav>

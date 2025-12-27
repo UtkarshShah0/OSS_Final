@@ -1,0 +1,247 @@
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Payment Methods</h1>
+    <p class="text-gray-600">Manage your payment methods for faster checkout</p>
+  </div>
+
+  <!-- Add Payment Method Button -->
+  <div class="mb-6">
+    <button
+      *ngIf="!showAddForm"
+      (click)="showAddForm = true"
+      class="btn-primary inline-flex items-center space-x-2"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      <span>Add Payment Method</span>
+    </button>
+  </div>
+
+  <!-- Add/Edit Payment Method Form -->
+  <div *ngIf="showAddForm" class="card p-6 mb-8 animate-fade-in">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      {{ editingMethod ? 'Edit Payment Method' : 'Add New Payment Method' }}
+    </h2>
+
+    <div class="space-y-6">
+      <!-- Payment Type Selection -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
+        <div class="grid grid-cols-3 gap-4">
+          <button
+            (click)="newPaymentMethod.type = 'card'"
+            [class.bg-primary-600]="newPaymentMethod.type === 'card'"
+            [class.text-white]="newPaymentMethod.type === 'card'"
+            [class.bg-gray-100]="newPaymentMethod.type !== 'card'"
+            [class.text-gray-700]="newPaymentMethod.type !== 'card'"
+            class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+          >
+            <span>💳</span>
+            <span>Card</span>
+          </button>
+          <button
+            (click)="newPaymentMethod.type = 'wallet'"
+            [class.bg-primary-600]="newPaymentMethod.type === 'wallet'"
+            [class.text-white]="newPaymentMethod.type === 'wallet'"
+            [class.bg-gray-100]="newPaymentMethod.type !== 'wallet'"
+            [class.text-gray-700]="newPaymentMethod.type !== 'wallet'"
+            class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+          >
+            <span>💼</span>
+            <span>Wallet</span>
+          </button>
+          <button
+            (click)="newPaymentMethod.type = 'bank'"
+            [class.bg-primary-600]="newPaymentMethod.type === 'bank'"
+            [class.text-white]="newPaymentMethod.type === 'bank'"
+            [class.bg-gray-100]="newPaymentMethod.type !== 'bank'"
+            [class.text-gray-700]="newPaymentMethod.type !== 'bank'"
+            class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+          >
+            <span>🏦</span>
+            <span>Bank</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card Details -->
+      <div *ngIf="newPaymentMethod.type === 'card'" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+          <input
+            [(ngModel)]="newPaymentMethod.cardNumber"
+            type="text"
+            placeholder="1234 5678 9012 3456"
+            maxlength="19"
+            (input)="newPaymentMethod.cardNumber = formatCardNumber($any($event.target).value)"
+            class="input-field"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+          <input
+            [(ngModel)]="newPaymentMethod.cardHolder"
+            type="text"
+            placeholder="John Doe"
+            class="input-field"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Month</label>
+            <select [(ngModel)]="newPaymentMethod.expiryMonth" class="input-field">
+              <option [value]="0">Select Month</option>
+              <option *ngFor="let month of months" [value]="month">
+                {{ month.toString().padStart(2, '0') }}
+              </option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Year</label>
+            <select [(ngModel)]="newPaymentMethod.expiryYear" class="input-field">
+              <option [value]="0">Select Year</option>
+              <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wallet Details -->
+      <div *ngIf="newPaymentMethod.type === 'wallet'" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Wallet Type</label>
+          <div class="grid grid-cols-3 gap-4">
+            <button
+              *ngFor="let wallet of walletTypes"
+              (click)="newPaymentMethod.walletType = wallet"
+              [class.bg-primary-600]="newPaymentMethod.walletType === wallet"
+              [class.text-white]="newPaymentMethod.walletType === wallet"
+              [class.bg-gray-100]="newPaymentMethod.walletType !== wallet"
+              [class.text-gray-700]="newPaymentMethod.walletType !== wallet"
+              class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+            >
+              <span>{{ getWalletIcon(wallet) }}</span>
+              <span>{{ getWalletName(wallet) }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank Details -->
+      <div *ngIf="newPaymentMethod.type === 'bank'" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Bank Account</label>
+          <input
+            type="text"
+            placeholder="Enter bank account details"
+            class="input-field"
+          />
+        </div>
+      </div>
+
+      <!-- Set as Default -->
+      <div class="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          [(ngModel)]="newPaymentMethod.isDefault"
+          id="isDefault"
+          class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+        />
+        <label for="isDefault" class="text-sm font-medium text-gray-700">
+          Set as default payment method
+        </label>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex space-x-4 pt-4">
+        <button
+          (click)="editingMethod ? updatePaymentMethod() : addPaymentMethod()"
+          class="btn-primary flex-1"
+          [disabled]="!validatePaymentMethod()"
+        >
+          {{ editingMethod ? 'Update Payment Method' : 'Add Payment Method' }}
+        </button>
+        <button
+          (click)="cancelForm()"
+          class="btn-outline flex-1"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Methods List -->
+  <div *ngIf="paymentMethods.length === 0 && !showAddForm" class="card p-12 text-center">
+    <div class="text-6xl mb-4">💳</div>
+    <h3 class="text-xl font-semibold text-gray-900 mb-2">No payment methods</h3>
+    <p class="text-gray-600 mb-6">Add a payment method to get started</p>
+    <button
+      (click)="showAddForm = true"
+      class="btn-primary inline-block"
+    >
+      Add Payment Method
+    </button>
+  </div>
+
+  <div *ngIf="paymentMethods.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+      *ngFor="let method of paymentMethods"
+      class="card p-6 hover:shadow-lg transition-shadow"
+      [class.border-2]="method.isDefault"
+      [class.border-primary-600]="method.isDefault"
+    >
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center text-2xl">
+            <span *ngIf="method.type === 'card'">💳</span>
+            <span *ngIf="method.type === 'wallet'">{{ getWalletIcon(method.walletType) }}</span>
+            <span *ngIf="method.type === 'bank'">🏦</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">
+              <span *ngIf="method.type === 'card'">Credit/Debit Card</span>
+              <span *ngIf="method.type === 'wallet'">{{ getWalletName(method.walletType) }}</span>
+              <span *ngIf="method.type === 'bank'">Bank Account</span>
+            </h3>
+            <p *ngIf="method.type === 'card'" class="text-gray-600 text-sm font-mono">
+              {{ formatCardDisplay(method.cardNumber || '') }}
+            </p>
+            <p *ngIf="method.type === 'card' && method.cardHolder" class="text-gray-600 text-sm">
+              {{ method.cardHolder }}
+            </p>
+            <p *ngIf="method.type === 'card' && method.expiryMonth && method.expiryYear" class="text-gray-600 text-sm">
+              Expires: {{ method.expiryMonth.toString().padStart(2, '0') }}/{{ method.expiryYear }}
+            </p>
+          </div>
+        </div>
+        <span *ngIf="method.isDefault" class="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-xs font-medium">
+          Default
+        </span>
+      </div>
+
+      <div class="flex space-x-2 pt-4 border-t border-gray-200">
+        <button
+          *ngIf="!method.isDefault"
+          (click)="setDefaultMethod(method.id)"
+          class="text-primary-600 hover:text-primary-700 text-sm font-medium"
+        >
+          Set as Default
+        </button>
+        <button
+          (click)="editPaymentMethod(method)"
+          class="text-primary-600 hover:text-primary-700 text-sm font-medium ml-auto"
+        >
+          Edit
+        </button>
+        <button
+          (click)="deletePaymentMethod(method.id)"
+          class="text-red-600 hover:text-red-700 text-sm font-medium"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

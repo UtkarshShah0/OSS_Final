@@ -1,0 +1,231 @@
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">Checkout</h1>
+
+  <!-- Progress Steps -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div *ngFor="let step of steps; let i = index" class="flex items-center flex-1">
+        <div class="flex flex-col items-center flex-1">
+          <div
+            [class.bg-primary-600]="currentStep > i + 1"
+            [class.bg-primary-600]="currentStep === i + 1"
+            [class.bg-gray-300]="currentStep < i + 1"
+            class="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold mb-2"
+          >
+            <span *ngIf="currentStep > i + 1">✓</span>
+            <span *ngIf="currentStep <= i + 1">{{ i + 1 }}</span>
+          </div>
+          <span
+            [class.text-primary-600]="currentStep >= i + 1"
+            [class.text-gray-400]="currentStep < i + 1"
+            class="text-sm font-medium"
+          >
+            {{ step }}
+          </span>
+        </div>
+        <div *ngIf="i < steps.length - 1" class="flex-1 h-1 mx-4"
+          [class.bg-primary-600]="currentStep > i + 1"
+          [class.bg-gray-300]="currentStep <= i + 1"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Content -->
+    <div class="lg:col-span-2">
+      <!-- Step 1: Shipping Address -->
+      <div *ngIf="currentStep === 1" class="card p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Shipping Address</h2>
+        
+        <div *ngIf="user && user.addresses && user.addresses.length > 0" class="space-y-4 mb-6">
+          <div
+            *ngFor="let address of user.addresses"
+            (click)="selectedAddress = address"
+            [class.border-primary-600]="selectedAddress?.id === address.id"
+            [class.bg-primary-50]="selectedAddress?.id === address.id"
+            class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-primary-300 transition-colors"
+          >
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="font-semibold text-gray-900">{{ address.fullName }}</p>
+                <p class="text-gray-600">{{ address.addressLine1 }}</p>
+                <p *ngIf="address.addressLine2" class="text-gray-600">{{ address.addressLine2 }}</p>
+                <p class="text-gray-600">{{ address.city }}, {{ address.state }} {{ address.zipCode }}</p>
+                <p class="text-gray-600">{{ address.country }}</p>
+                <p class="text-gray-600 mt-2">Phone: {{ address.phone }}</p>
+              </div>
+              <div *ngIf="selectedAddress?.id === address.id" class="text-primary-600">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          *ngIf="!showNewAddressForm"
+          (click)="showNewAddressForm = true"
+          class="btn-outline w-full mb-4"
+        >
+          + Add New Address
+        </button>
+
+        <div *ngIf="showNewAddressForm" class="card p-6 bg-gray-50">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">New Address</h3>
+          <div class="space-y-4">
+            <input [(ngModel)]="newAddress.fullName" placeholder="Full Name" class="input-field" />
+            <input [(ngModel)]="newAddress.phone" placeholder="Phone Number" class="input-field" />
+            <input [(ngModel)]="newAddress.addressLine1" placeholder="Address Line 1" class="input-field" />
+            <input [(ngModel)]="newAddress.addressLine2" placeholder="Address Line 2 (Optional)" class="input-field" />
+            <div class="grid grid-cols-2 gap-4">
+              <input [(ngModel)]="newAddress.city" placeholder="City" class="input-field" />
+              <input [(ngModel)]="newAddress.state" placeholder="State" class="input-field" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <input [(ngModel)]="newAddress.zipCode" placeholder="ZIP Code" class="input-field" />
+              <input [(ngModel)]="newAddress.country" placeholder="Country" class="input-field" />
+            </div>
+            <div class="flex space-x-4">
+              <button (click)="addNewAddress()" class="btn-primary flex-1">Add Address</button>
+              <button (click)="showNewAddressForm = false; resetNewAddress()" class="btn-secondary flex-1">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Payment Method -->
+      <div *ngIf="currentStep === 2" class="card p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Payment Method</h2>
+        
+        <div *ngIf="user && user.paymentMethods && user.paymentMethods.length > 0" class="space-y-4 mb-6">
+          <div
+            *ngFor="let method of user.paymentMethods"
+            (click)="selectedPaymentMethod = method"
+            [class.border-primary-600]="selectedPaymentMethod?.id === method.id"
+            [class.bg-primary-50]="selectedPaymentMethod?.id === method.id"
+            class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-primary-300 transition-colors"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-semibold text-gray-900">
+                  {{ method.type === 'card' ? '💳 Card' : '💼 Wallet' }}
+                </p>
+                <p *ngIf="method.type === 'card'" class="text-gray-600">
+                  {{ formatCardNumber(method.cardNumber || '') }}
+                </p>
+                <p *ngIf="method.type === 'card'" class="text-gray-600">
+                  {{ method.cardHolder }}
+                </p>
+              </div>
+              <div *ngIf="selectedPaymentMethod?.id === method.id" class="text-primary-600">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          *ngIf="!showNewPaymentForm"
+          (click)="showNewPaymentForm = true"
+          class="btn-outline w-full mb-4"
+        >
+          + Add New Payment Method
+        </button>
+
+        <div *ngIf="showNewPaymentForm" class="card p-6 bg-gray-50">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">New Payment Method</h3>
+          <div class="space-y-4">
+            <input [(ngModel)]="newPaymentMethod.cardNumber" placeholder="Card Number" class="input-field" maxlength="19" />
+            <input [(ngModel)]="newPaymentMethod.cardHolder" placeholder="Card Holder Name" class="input-field" />
+            <div class="grid grid-cols-2 gap-4">
+              <input type="number" [(ngModel)]="newPaymentMethod.expiryMonth" placeholder="MM" class="input-field" min="1" max="12" />
+              <input type="number" [(ngModel)]="newPaymentMethod.expiryYear" placeholder="YYYY" class="input-field" min="2024" />
+            </div>
+            <div class="flex space-x-4">
+              <button (click)="addNewPaymentMethod()" class="btn-primary flex-1">Add Payment Method</button>
+              <button (click)="showNewPaymentForm = false; resetNewPaymentMethod()" class="btn-secondary flex-1">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Review Order -->
+      <div *ngIf="currentStep === 3" class="card p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Review Order</h2>
+        
+        <div class="space-y-4 mb-6">
+          <div *ngFor="let item of cartItems" class="flex items-center space-x-4 pb-4 border-b border-gray-200">
+            <img [src]="item.product.images[0]" [alt]="item.product.name" class="w-20 h-20 object-cover rounded-lg" />
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900">{{ item.product.name }}</h3>
+              <p class="text-gray-600">Quantity: {{ item.quantity }}</p>
+            </div>
+            <p class="font-semibold text-gray-900">{{ formatPrice(item.product.price * item.quantity) }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="selectedAddress" class="mb-6">
+          <h3 class="font-semibold text-gray-900 mb-2">Shipping Address</h3>
+          <p class="text-gray-600">{{ selectedAddress.fullName }}</p>
+          <p class="text-gray-600">{{ selectedAddress.addressLine1 }}</p>
+          <p class="text-gray-600">{{ selectedAddress.city }}, {{ selectedAddress.state }} {{ selectedAddress.zipCode }}</p>
+        </div>
+
+        <div *ngIf="selectedPaymentMethod">
+          <h3 class="font-semibold text-gray-900 mb-2">Payment Method</h3>
+          <p class="text-gray-600">{{ selectedPaymentMethod.type === 'card' ? 'Card' : 'Wallet' }}</p>
+          <p *ngIf="selectedPaymentMethod.type === 'card'" class="text-gray-600">
+            {{ formatCardNumber(selectedPaymentMethod.cardNumber || '') }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between">
+        <button *ngIf="currentStep > 1" (click)="previousStep()" class="btn-secondary">
+          ← Previous
+        </button>
+        <button *ngIf="currentStep < steps.length" (click)="nextStep()" class="btn-primary ml-auto">
+          Next →
+        </button>
+        <button *ngIf="currentStep === steps.length" (click)="placeOrder()" class="btn-primary ml-auto">
+          Place Order
+        </button>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="lg:col-span-1">
+      <div class="card p-6 sticky top-20">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+        
+        <div class="space-y-4 mb-6">
+          <div class="flex justify-between text-gray-600">
+            <span>Subtotal</span>
+            <span>{{ formatPrice(getSubtotal()) }}</span>
+          </div>
+          <div *ngIf="getTotalDiscount() > 0" class="flex justify-between text-green-600">
+            <span>Discount</span>
+            <span>-{{ formatPrice(getTotalDiscount()) }}</span>
+          </div>
+          <div class="flex justify-between text-gray-600">
+            <span>Shipping</span>
+            <span>{{ getShipping() === 0 ? 'Free' : formatPrice(getShipping()) }}</span>
+          </div>
+          <div class="flex justify-between text-gray-600">
+            <span>Tax (GST)</span>
+            <span>{{ formatPrice(getTax()) }}</span>
+          </div>
+          <div class="border-t border-gray-200 pt-4 flex justify-between text-xl font-bold text-gray-900">
+            <span>Total</span>
+            <span>{{ formatPrice(getTotal()) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
