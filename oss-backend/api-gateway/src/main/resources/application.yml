@@ -12,29 +12,29 @@ spring:
           lower-case-service-id: true
       routes:
         - id: user-service
-          uri: lb://USER-SERVICE
+          uri: lb://user-service
           predicates:
             - Path=/auth/**,/users/**
 
         - id: product-catalog
-          uri: lb://PRODUCT-CATALOG
+          uri: lb://product-catalog
           predicates:
-            - Path=/products/**,/categories/**,/reviews/**
+            - Path=/api/products/**,/api/products/*/reviews/**,/api/products/image/**
 
         - id: cart-service
-          uri: lb://CART-SERVICE
+          uri: lb://cart-service
           predicates:
             - Path=/cart/**,/checkout/**
 
         - id: order-management-service
-          uri: lb://ORDER-MANAGEMENT-SERVICE
+          uri: lb://order-management-service
           predicates:
-            - Path=/orders/**
+            - Path=/api/orders/**
 
         - id: payment-processing-service
-          uri: lb://PAYMENT-PROCESSING-SERVICE
+          uri: lb://payment-processing-service
           predicates:
-            - Path=/payments/**
+            - Path=/api/payments/**
 
 eureka:
   client:

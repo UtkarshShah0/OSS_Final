@@ -31,16 +31,13 @@ export class LoginComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Simulate API call
-    setTimeout(() => {
-      const success = this.authService.login(this.email, this.password);
+    this.authService.login(this.email, this.password).subscribe(success => {
       this.isLoading = false;
-      
       if (success) {
         this.router.navigate(['/']);
       } else {
         this.errorMessage = 'Invalid email or password';
       }
-    }, 500);
+    });
   }
 }

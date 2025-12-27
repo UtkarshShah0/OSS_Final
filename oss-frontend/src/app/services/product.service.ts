@@ -3,8 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { Product, Review, Category } from './models';
 
-// API gateway base URL (gateway routes /products/** to product-catalog)
-const API_BASE_URL = 'http://localhost:9090';
+// API gateway base URL (gateway routes /api/products/** to product-catalog)
+const API_BASE_URL = 'http://localhost:9090/api';
 
 export interface ProductResponse {
   id: number;

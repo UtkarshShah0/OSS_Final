@@ -43,16 +43,13 @@ export class RegisterComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Simulate API call
-    setTimeout(() => {
-      const success = this.authService.register(this.email, this.password, this.name);
+    this.authService.register(this.email, this.password, this.name).subscribe(success => {
       this.isLoading = false;
-      
       if (success) {
         this.router.navigate(['/']);
       } else {
         this.errorMessage = 'Registration failed. Please try again.';
       }
-    }, 500);
+    });
   }
 }
