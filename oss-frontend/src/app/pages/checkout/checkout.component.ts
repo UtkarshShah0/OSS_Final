@@ -396,8 +396,15 @@ export class CheckoutComponent implements OnInit {
 
   placeOrder() {
     if (this.selectedAddress && this.selectedPaymentMethod) {
-      this.orderService.createOrder(this.selectedAddress, this.selectedPaymentMethod).subscribe(order => {
-        this.router.navigate(['/profile'], { queryParams: { tab: 'orders', orderId: order.id } });
+      this.orderService.createOrder(this.selectedAddress, this.selectedPaymentMethod).subscribe({
+        next: (order) => {
+          // Cart is already cleared in OrderService, just navigate
+          this.router.navigate(['/profile'], { queryParams: { tab: 'orders', orderId: order.id } });
+        },
+        error: (error) => {
+          console.error('Error placing order:', error);
+          alert('Failed to place order. Please try again.');
+        }
       });
     }
   }

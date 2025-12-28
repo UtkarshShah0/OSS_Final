@@ -22,6 +22,7 @@ export class CartService {
   private cartItems: CartItem[] = [];
   private cartSubject = new BehaviorSubject<CartItem[]>([]);
   public cart$: Observable<CartItem[]> = this.cartSubject.asObservable();
+  private cartCleared = false; // Flag to prevent reloading after clearing
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object, 
@@ -33,7 +34,7 @@ export class CartService {
     
     // Load from database when user logs in
     this.auth.currentUser$.subscribe(user => {
-      if (user) {
+      if (user && !this.cartCleared) {
         this.loadCartFromDatabase(user.id);
       }
     });
@@ -232,22 +233,39 @@ export class CartService {
   }
 
   clearCart(): void {
+    console.log('clearCart() called, current cart items:', this.cartItems.length);
     const user = this.auth.getCurrentUser();
     
-    if (user) {
-      // Clear database cart
-      this.cartItems.forEach(item => {
+    // Set flag to prevent reloading from database
+    this.cartCleared = true;
+    
+    // Always clear local cart immediately for better UX
+    const itemsToDelete = [...this.cartItems];
+    this.cartItems = [];
+    this.saveCartToStorage();
+    console.log('Local cart cleared, items to delete from DB:', itemsToDelete.length);
+    
+    if (user && itemsToDelete.length > 0) {
+      // Clear database cart asynchronously
+      itemsToDelete.forEach((item, index) => {
         if (item.itemId) {
+          console.log(`Deleting cart item ${index + 1}/${itemsToDelete.length}: itemId=${item.itemId}, productId=${item.product.id}`);
           this.http.delete(`${API_GATEWAY}/cart/${user.id}/items/${item.itemId}`, { responseType: 'text' }).pipe(
-            catchError(() => of(''))
-          ).subscribe();
+            catchError((error) => {
+              console.warn('Failed to delete cart item from database:', error);
+              return of('');
+            })
+          ).subscribe((result) => {
+            console.log(`Cart item ${item.itemId} deleted from database:`, result);
+          });
         }
       });
     }
     
-    // Clear local cart
-    this.cartItems = [];
-    this.saveCartToStorage();
+    // Reset flag after a delay to allow future cart operations
+    setTimeout(() => {
+      this.cartCleared = false;
+    }, 2000);
   }
 
   isInCart(productId: number): boolean {

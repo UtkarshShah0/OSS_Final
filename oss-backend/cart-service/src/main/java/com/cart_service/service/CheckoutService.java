@@ -2,7 +2,9 @@ package com.cart_service.service;
 
 import com.cart_service.client.OrderClient;
 import com.cart_service.client.PaymentClient;
+import com.cart_service.client.ProductClient;
 import com.cart_service.dto.PriceDto;
+import com.cart_service.dto.ProductDto;
 import com.cart_service.model.Cart;
 import com.cart_service.repository.CartRepository;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,15 @@ public class CheckoutService {
     private final OrderClient orders;
     private final PaymentClient payments;
     private final CartRepository cartRepo;
+    private final ProductClient productClient;
 
-    public CheckoutService(CartService carts, PricingService pricing, OrderClient orders, PaymentClient payments, CartRepository cartRepo) {
+    public CheckoutService(CartService carts, PricingService pricing, OrderClient orders, PaymentClient payments, CartRepository cartRepo, ProductClient productClient) {
         this.carts = carts;
         this.pricing = pricing;
         this.orders = orders;
         this.payments = payments;
         this.cartRepo = cartRepo;
+        this.productClient = productClient;
     }
 
     public Map<String,Object> checkout(Long userId, Long addressId, String shipping, String paymentMethod){
@@ -41,20 +45,28 @@ public class CheckoutService {
             
             List<Map<String,Object>> items = new ArrayList<>(); 
             
-            // Calculate unit price using BigDecimal arithmetic
-            java.math.BigDecimal grandTotal = price.getGrandTotal();
-            int itemCount = cart.getItems().size();
-            java.math.BigDecimal unitPrice = itemCount > 0 ? 
-                grandTotal.divide(java.math.BigDecimal.valueOf(itemCount), 2, java.math.RoundingMode.HALF_UP) : 
-                java.math.BigDecimal.ZERO;
+            // Fetch product details for all cart items
+            List<Long> productIds = cart.getItems().stream()
+                .map(ci -> ci.getProductId())
+                .toList();
+            
+            List<ProductDto> products = productClient.batch(productIds);
+            Map<Long, ProductDto> productMap = new HashMap<>();
+            for (ProductDto product : products) {
+                productMap.put(product.getId(), product);
+            }
             
             cart.getItems().forEach(ci -> {
-                java.math.BigDecimal lineTotal = unitPrice.multiply(java.math.BigDecimal.valueOf(ci.getQuantity()));
+                ProductDto product = productMap.get(ci.getProductId());
+                String productName = product != null ? product.getName() : "Product-" + ci.getProductId();
+                java.math.BigDecimal productPrice = product != null ? product.getPrice() : java.math.BigDecimal.ZERO;
+                java.math.BigDecimal lineTotal = productPrice.multiply(java.math.BigDecimal.valueOf(ci.getQuantity()));
+                
                 items.add(Map.of(
                     "productId", ci.getProductId(), 
-                    "name", "Product-" + ci.getProductId(), 
+                    "name", productName, 
                     "quantity", ci.getQuantity(), 
-                    "unitPrice", unitPrice.doubleValue(), 
+                    "unitPrice", productPrice.doubleValue(), 
                     "lineTotal", lineTotal.doubleValue()
                 ));
             }); 

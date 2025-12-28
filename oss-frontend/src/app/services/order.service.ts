@@ -65,6 +65,7 @@ export class OrderService {
 
       const url = `${API_GATEWAY}/api/orders/`;
       return this.http.post<Order>(url, orderData).pipe(map(res => {
+        console.log('Order created successfully, clearing cart...');
         // Clear cart after successful order
         this.cartService.clearCart();
         
