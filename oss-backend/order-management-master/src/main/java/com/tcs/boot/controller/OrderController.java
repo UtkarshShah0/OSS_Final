@@ -6,6 +6,9 @@ import org.springframework.web.bind.annotation.*;
 import com.tcs.boot.entity.Order;
 import com.tcs.boot.service.OrderService;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -28,6 +31,12 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderByOrderId(orderId));
     }
 
+    // Get Orders by User ID
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Order>> getOrdersByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
+    }
+
     // Update Order
     @PutMapping("/{orderId}")
     public ResponseEntity<Order> updateOrder(
@@ -47,6 +56,12 @@ public class OrderController {
     @GetMapping("/{orderId}/track")
     public ResponseEntity<Order> trackOrder(@PathVariable String orderId) {
         return ResponseEntity.ok(orderService.trackOrder(orderId));
+    }
+
+    // Create order from external service (for checkout)
+    @PostMapping("/create")
+    public ResponseEntity<Map<String, Object>> createOrder(@RequestBody Map<String, Object> orderData) {
+        return ResponseEntity.ok(orderService.createOrderFromMap(orderData));
     }
 }
 

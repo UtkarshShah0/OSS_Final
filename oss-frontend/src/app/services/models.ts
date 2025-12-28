@@ -43,10 +43,11 @@ export interface Category {
 
 export interface User {
   id: number;
-  email: string;
-  name: string;
+  email?: string;
   phone?: string;
+  name?: string;
   avatar?: string;
+  mfaEnabled?: boolean;
   addresses: Address[];
   paymentMethods: PaymentMethod[];
   orders: Order[];
@@ -68,12 +69,14 @@ export interface Address {
 
 export interface PaymentMethod {
   id: number;
-  type: 'card' | 'wallet' | 'bank';
+  type: 'card' | 'wallet' | 'upi' | 'cod' | 'bnpl';
   cardNumber?: string;
   cardHolder?: string;
   expiryMonth?: number;
   expiryYear?: number;
-  walletType?: 'apple' | 'google' | 'paypal';
+  walletType?: 'apple' | 'google' | 'paypal' | 'paytm' | 'phonepe' | 'amazonpay';
+  upiId?: string;
+  bnplProvider?: 'klarna' | 'afterpay' | 'sezzle' | 'affirm';
   isDefault: boolean;
 }
 

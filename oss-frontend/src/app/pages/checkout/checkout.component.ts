@@ -159,8 +159,9 @@ export class CheckoutComponent implements OnInit {
 
   placeOrder() {
     if (this.selectedAddress && this.selectedPaymentMethod) {
-      const order = this.orderService.createOrder(this.selectedAddress, this.selectedPaymentMethod);
-      this.router.navigate(['/profile'], { queryParams: { tab: 'orders', orderId: order.id } });
+      this.orderService.createOrder(this.selectedAddress, this.selectedPaymentMethod).subscribe(order => {
+        this.router.navigate(['/profile'], { queryParams: { tab: 'orders', orderId: order.id } });
+      });
     }
   }
 

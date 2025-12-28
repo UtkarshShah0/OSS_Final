@@ -68,7 +68,7 @@ export class ProductDetailComponent implements OnInit {
 
     const reviewRequest: ReviewRequest = {
       userId: currentUser.id,
-      userName: currentUser.name,
+      userName: currentUser.name || 'Anonymous User',
       userAvatar: currentUser.avatar,
       rating: this.newReview.rating,
       title: this.newReview.title,

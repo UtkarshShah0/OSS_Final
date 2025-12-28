@@ -28,7 +28,7 @@
       <!-- Payment Type Selection -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <button
             (click)="newPaymentMethod.type = 'card'"
             [class.bg-primary-600]="newPaymentMethod.type === 'card'"
@@ -39,6 +39,17 @@
           >
             <span>💳</span>
             <span>Card</span>
+          </button>
+          <button
+            (click)="newPaymentMethod.type = 'upi'"
+            [class.bg-primary-600]="newPaymentMethod.type === 'upi'"
+            [class.text-white]="newPaymentMethod.type === 'upi'"
+            [class.bg-gray-100]="newPaymentMethod.type !== 'upi'"
+            [class.text-gray-700]="newPaymentMethod.type !== 'upi'"
+            class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+          >
+            <span>📱</span>
+            <span>UPI</span>
           </button>
           <button
             (click)="newPaymentMethod.type = 'wallet'"
@@ -52,15 +63,26 @@
             <span>Wallet</span>
           </button>
           <button
-            (click)="newPaymentMethod.type = 'bank'"
-            [class.bg-primary-600]="newPaymentMethod.type === 'bank'"
-            [class.text-white]="newPaymentMethod.type === 'bank'"
-            [class.bg-gray-100]="newPaymentMethod.type !== 'bank'"
-            [class.text-gray-700]="newPaymentMethod.type !== 'bank'"
+            (click)="newPaymentMethod.type = 'cod'"
+            [class.bg-primary-600]="newPaymentMethod.type === 'cod'"
+            [class.text-white]="newPaymentMethod.type === 'cod'"
+            [class.bg-gray-100]="newPaymentMethod.type !== 'cod'"
+            [class.text-gray-700]="newPaymentMethod.type !== 'cod'"
             class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
           >
-            <span>🏦</span>
-            <span>Bank</span>
+            <span>💵</span>
+            <span>COD</span>
+          </button>
+          <button
+            (click)="newPaymentMethod.type = 'bnpl'"
+            [class.bg-primary-600]="newPaymentMethod.type === 'bnpl'"
+            [class.text-white]="newPaymentMethod.type === 'bnpl'"
+            [class.bg-gray-100]="newPaymentMethod.type !== 'bnpl'"
+            [class.text-gray-700]="newPaymentMethod.type !== 'bnpl'"
+            class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+          >
+            <span>⏰</span>
+            <span>BNPL</span>
           </button>
         </div>
       </div>
@@ -107,36 +129,49 @@
         </div>
       </div>
 
-      <!-- Wallet Details -->
-      <div *ngIf="newPaymentMethod.type === 'wallet'" class="space-y-4">
+      <!-- UPI Details -->
+      <div *ngIf="newPaymentMethod.type === 'upi'" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Wallet Type</label>
-          <div class="grid grid-cols-3 gap-4">
-            <button
-              *ngFor="let wallet of walletTypes"
-              (click)="newPaymentMethod.walletType = wallet"
-              [class.bg-primary-600]="newPaymentMethod.walletType === wallet"
-              [class.text-white]="newPaymentMethod.walletType === wallet"
-              [class.bg-gray-100]="newPaymentMethod.walletType !== wallet"
-              [class.text-gray-700]="newPaymentMethod.walletType !== wallet"
-              class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-            >
-              <span>{{ getWalletIcon(wallet) }}</span>
-              <span>{{ getWalletName(wallet) }}</span>
-            </button>
+          <label class="block text-sm font-medium text-gray-700 mb-2">UPI ID</label>
+          <input
+            [(ngModel)]="newPaymentMethod.upiId"
+            type="text"
+            placeholder="yourname@paytm"
+            class="input-field"
+          />
+        </div>
+      </div>
+
+      <!-- COD Details -->
+      <div *ngIf="newPaymentMethod.type === 'cod'" class="space-y-4">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div class="flex items-center space-x-2">
+            <span class="text-yellow-600">⚠️</span>
+            <p class="text-sm text-yellow-800">
+              <strong>Cash on Delivery:</strong> Pay when your order is delivered to your doorstep.
+            </p>
           </div>
         </div>
       </div>
 
-      <!-- Bank Details -->
-      <div *ngIf="newPaymentMethod.type === 'bank'" class="space-y-4">
+      <!-- BNPL Details -->
+      <div *ngIf="newPaymentMethod.type === 'bnpl'" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Bank Account</label>
-          <input
-            type="text"
-            placeholder="Enter bank account details"
-            class="input-field"
-          />
+          <label class="block text-sm font-medium text-gray-700 mb-2">BNPL Provider</label>
+          <div class="grid grid-cols-2 gap-4">
+            <button
+              *ngFor="let provider of bnplProviders"
+              (click)="newPaymentMethod.bnplProvider = provider"
+              [class.bg-primary-600]="newPaymentMethod.bnplProvider === provider"
+              [class.text-white]="newPaymentMethod.bnplProvider === provider"
+              [class.bg-gray-100]="newPaymentMethod.bnplProvider !== provider"
+              [class.text-gray-700]="newPaymentMethod.bnplProvider !== provider"
+              class="px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+            >
+              <span>{{ getBnplIcon(provider) }}</span>
+              <span>{{ provider }}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -196,14 +231,18 @@
         <div class="flex items-center space-x-4">
           <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center text-2xl">
             <span *ngIf="method.type === 'card'">💳</span>
+            <span *ngIf="method.type === 'upi'">📱</span>
             <span *ngIf="method.type === 'wallet'">{{ getWalletIcon(method.walletType) }}</span>
-            <span *ngIf="method.type === 'bank'">🏦</span>
+            <span *ngIf="method.type === 'cod'">💵</span>
+            <span *ngIf="method.type === 'bnpl'">⏰</span>
           </div>
           <div>
             <h3 class="text-lg font-semibold text-gray-900">
-              <span *ngIf="method.type === 'card'">Credit/Debit Card</span>
-              <span *ngIf="method.type === 'wallet'">{{ getWalletName(method.walletType) }}</span>
-              <span *ngIf="method.type === 'bank'">Bank Account</span>
+              <span *ngIf="method.type === 'card'">💳 Credit/Debit Card</span>
+              <span *ngIf="method.type === 'upi'">📱 UPI</span>
+              <span *ngIf="method.type === 'wallet'">💼 {{ getWalletName(method.walletType) }}</span>
+              <span *ngIf="method.type === 'cod'">💵 Cash on Delivery</span>
+              <span *ngIf="method.type === 'bnpl'">⏰ Buy Now Pay Later</span>
             </h3>
             <p *ngIf="method.type === 'card'" class="text-gray-600 text-sm font-mono">
               {{ formatCardDisplay(method.cardNumber || '') }}
@@ -213,6 +252,12 @@
             </p>
             <p *ngIf="method.type === 'card' && method.expiryMonth && method.expiryYear" class="text-gray-600 text-sm">
               Expires: {{ method.expiryMonth.toString().padStart(2, '0') }}/{{ method.expiryYear }}
+            </p>
+            <p *ngIf="method.type === 'upi'" class="text-gray-600 text-sm">
+              {{ method.upiId }}
+            </p>
+            <p *ngIf="method.type === 'bnpl'" class="text-gray-600 text-sm">
+              {{ method.bnplProvider }}
             </p>
           </div>
         </div>

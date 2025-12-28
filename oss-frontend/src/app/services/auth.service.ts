@@ -37,12 +37,18 @@ export class AuthService {
 
   login(emailOrPhone: string, password: string): Observable<boolean> {
     const url = `${API_GATEWAY}/auth/login`;
-    const params = new HttpParams().set('emailOrPhone', emailOrPhone).set('password', password);
-    return this.http.post<User>(url, null, { params }).pipe(
+    const body = { emailOrPhone, password };
+    return this.http.post<User>(url, body).pipe(
       tap(user => {
+        // Initialize empty arrays if they don't exist
+        user.addresses = user.addresses || [];
+        user.paymentMethods = user.paymentMethods || [];
+        user.orders = user.orders || [];
+        user.wishlist = user.wishlist || [];
+        
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem(this.userKey, JSON.stringify(user));
-          localStorage.setItem(this.tokenKey, '');
+          localStorage.setItem(this.tokenKey, 'authenticated'); // Set a simple token
         }
         this.currentUserSubject.next(user);
       }),
@@ -53,16 +59,57 @@ export class AuthService {
 
   register(email: string | null, password: string, name?: string): Observable<boolean> {
     const url = `${API_GATEWAY}/auth/register`;
-    let params = new HttpParams().set('password', password);
-    if (email) params = params.set('email', email);
-    return this.http.post<User>(url, null, { params }).pipe(
+    const body = { email, password, phone: '' }; // Add empty phone for now
+    return this.http.post<User>(url, body).pipe(
       tap(user => {
+        // Initialize empty arrays if they don't exist
+        user.addresses = user.addresses || [];
+        user.paymentMethods = user.paymentMethods || [];
+        user.orders = user.orders || [];
+        user.wishlist = user.wishlist || [];
+        
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem(this.userKey, JSON.stringify(user));
-          localStorage.setItem(this.tokenKey, '');
+          localStorage.setItem(this.tokenKey, 'authenticated');
         }
         this.currentUserSubject.next(user);
       }),
+      map(() => true),
+      catchError(() => of(false))
+    );
+  }
+
+  // Create a stub user (no password from client) and return success boolean
+  registerStub(email: string | null, phone?: string): Observable<User | null> {
+    const url = `${API_GATEWAY}/auth/register/stub`;
+    const body = { email, phone };
+    return this.http.post<User>(url, body).pipe(
+      catchError(() => of(null))
+    );
+  }
+
+  sendSignupOtp(userId: number, email: string): Observable<boolean> {
+    const url = `${API_GATEWAY}/auth/mfa/send`;
+    const body = { userId, email };
+    return this.http.post(url, body).pipe(
+      map(() => true),
+      catchError(() => of(false))
+    );
+  }
+
+  verifySignupOtp(userId: number, email: string, otpCode: string): Observable<boolean> {
+    const url = `${API_GATEWAY}/auth/mfa/verify`;
+    const body = { userId, email, otpCode };
+    return this.http.post(url, body).pipe(
+      map(() => true),
+      catchError(() => of(false))
+    );
+  }
+
+  setUserPassword(userId: number, password: string): Observable<boolean> {
+    const url = `${API_GATEWAY}/auth/set-password`;
+    const body = { userId, password };
+    return this.http.post(url, body).pipe(
       map(() => true),
       catchError(() => of(false))
     );

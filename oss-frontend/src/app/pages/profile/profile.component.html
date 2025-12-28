@@ -143,8 +143,8 @@
             <p class="text-gray-600 text-sm">{{ address.country }}</p>
             <p class="text-gray-600 text-sm mt-2">Phone: {{ address.phone }}</p>
             <div class="mt-4 flex space-x-2">
-              <button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
-              <button class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
+              <button (click)="editAddress(address)" class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
+              <button (click)="deleteAddress(address.id)" class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
             </div>
           </div>
         </div>
@@ -171,8 +171,8 @@
               </span>
             </div>
             <div class="mt-4 flex space-x-2">
-              <button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
-              <button class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
+              <button (click)="editPaymentMethod(method)" class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
+              <button (click)="deletePaymentMethod(method.id)" class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
             </div>
           </div>
         </div>

@@ -110,13 +110,23 @@
             <div class="flex items-center justify-between">
               <div>
                 <p class="font-semibold text-gray-900">
-                  {{ method.type === 'card' ? '💳 Card' : '💼 Wallet' }}
+                  <span *ngIf="method.type === 'card'">💳 Card</span>
+                  <span *ngIf="method.type === 'upi'">📱 UPI</span>
+                  <span *ngIf="method.type === 'wallet'">💼 Wallet</span>
+                  <span *ngIf="method.type === 'cod'">💵 Cash on Delivery</span>
+                  <span *ngIf="method.type === 'bnpl'">⏰ Buy Now Pay Later</span>
                 </p>
                 <p *ngIf="method.type === 'card'" class="text-gray-600">
                   {{ formatCardNumber(method.cardNumber || '') }}
                 </p>
                 <p *ngIf="method.type === 'card'" class="text-gray-600">
                   {{ method.cardHolder }}
+                </p>
+                <p *ngIf="method.type === 'upi'" class="text-gray-600">
+                  {{ method.upiId }}
+                </p>
+                <p *ngIf="method.type === 'bnpl'" class="text-gray-600">
+                  {{ method.bnplProvider }}
                 </p>
               </div>
               <div *ngIf="selectedPaymentMethod?.id === method.id" class="text-primary-600">
@@ -139,12 +149,88 @@
         <div *ngIf="showNewPaymentForm" class="card p-6 bg-gray-50">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">New Payment Method</h3>
           <div class="space-y-4">
-            <input [(ngModel)]="newPaymentMethod.cardNumber" placeholder="Card Number" class="input-field" maxlength="19" />
-            <input [(ngModel)]="newPaymentMethod.cardHolder" placeholder="Card Holder Name" class="input-field" />
-            <div class="grid grid-cols-2 gap-4">
-              <input type="number" [(ngModel)]="newPaymentMethod.expiryMonth" placeholder="MM" class="input-field" min="1" max="12" />
-              <input type="number" [(ngModel)]="newPaymentMethod.expiryYear" placeholder="YYYY" class="input-field" min="2024" />
+            <!-- Payment Type Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
+              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                <button
+                  (click)="newPaymentMethod.type = 'card'"
+                  [class.bg-primary-600]="newPaymentMethod.type === 'card'"
+                  [class.text-white]="newPaymentMethod.type === 'card'"
+                  [class.bg-gray-100]="newPaymentMethod.type !== 'card'"
+                  [class.text-gray-700]="newPaymentMethod.type !== 'card'"
+                  class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+                >
+                  <span>💳</span>
+                  <span>Card</span>
+                </button>
+                <button
+                  (click)="newPaymentMethod.type = 'upi'"
+                  [class.bg-primary-600]="newPaymentMethod.type === 'upi'"
+                  [class.text-white]="newPaymentMethod.type === 'upi'"
+                  [class.bg-gray-100]="newPaymentMethod.type !== 'upi'"
+                  [class.text-gray-700]="newPaymentMethod.type !== 'upi'"
+                  class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+                >
+                  <span>📱</span>
+                  <span>UPI</span>
+                </button>
+                <button
+                  (click)="newPaymentMethod.type = 'wallet'"
+                  [class.bg-primary-600]="newPaymentMethod.type === 'wallet'"
+                  [class.text-white]="newPaymentMethod.type === 'wallet'"
+                  [class.bg-gray-100]="newPaymentMethod.type !== 'wallet'"
+                  [class.text-gray-700]="newPaymentMethod.type !== 'wallet'"
+                  class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+                >
+                  <span>💼</span>
+                  <span>Wallet</span>
+                </button>
+                <button
+                  (click)="newPaymentMethod.type = 'cod'"
+                  [class.bg-primary-600]="newPaymentMethod.type === 'cod'"
+                  [class.text-white]="newPaymentMethod.type === 'cod'"
+                  [class.bg-gray-100]="newPaymentMethod.type !== 'cod'"
+                  [class.text-gray-700]="newPaymentMethod.type !== 'cod'"
+                  class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+                >
+                  <span>💵</span>
+                  <span>COD</span>
+                </button>
+                <button
+                  (click)="newPaymentMethod.type = 'bnpl'"
+                  [class.bg-primary-600]="newPaymentMethod.type === 'bnpl'"
+                  [class.text-white]="newPaymentMethod.type === 'bnpl'"
+                  [class.bg-gray-100]="newPaymentMethod.type !== 'bnpl'"
+                  [class.text-gray-700]="newPaymentMethod.type !== 'bnpl'"
+                  class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+                >
+                  <span>⏰</span>
+                  <span>BNPL</span>
+                </button>
+              </div>
             </div>
+
+            <!-- Card Details -->
+            <div *ngIf="newPaymentMethod.type === 'card'" class="space-y-4">
+              <input [(ngModel)]="newPaymentMethod.cardNumber" placeholder="Card Number" class="input-field" maxlength="19" />
+              <input [(ngModel)]="newPaymentMethod.cardHolder" placeholder="Card Holder Name" class="input-field" />
+              <div class="grid grid-cols-2 gap-4">
+                <input type="number" [(ngModel)]="newPaymentMethod.expiryMonth" placeholder="MM" class="input-field" min="1" max="12" />
+                <input type="number" [(ngModel)]="newPaymentMethod.expiryYear" placeholder="YYYY" class="input-field" min="2024" />
+              </div>
+            </div>
+
+            <!-- UPI Details -->
+            <div *ngIf="newPaymentMethod.type === 'upi'" class="space-y-4">
+              <input [(ngModel)]="newPaymentMethod.upiId" placeholder="UPI ID (e.g., yourname@paytm)" class="input-field" />
+            </div>
+
+            <!-- COD Info -->
+            <div *ngIf="newPaymentMethod.type === 'cod'" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p class="text-sm text-yellow-800">💵 Pay cash when your order is delivered</p>
+            </div>
+
             <div class="flex space-x-4">
               <button (click)="addNewPaymentMethod()" class="btn-primary flex-1">Add Payment Method</button>
               <button (click)="showNewPaymentForm = false; resetNewPaymentMethod()" class="btn-secondary flex-1">Cancel</button>
@@ -177,9 +263,18 @@
 
         <div *ngIf="selectedPaymentMethod">
           <h3 class="font-semibold text-gray-900 mb-2">Payment Method</h3>
-          <p class="text-gray-600">{{ selectedPaymentMethod.type === 'card' ? 'Card' : 'Wallet' }}</p>
+          <p class="text-gray-600">
+            <span *ngIf="selectedPaymentMethod.type === 'card'">💳 Card</span>
+            <span *ngIf="selectedPaymentMethod.type === 'upi'">📱 UPI</span>
+            <span *ngIf="selectedPaymentMethod.type === 'wallet'">💼 Wallet</span>
+            <span *ngIf="selectedPaymentMethod.type === 'cod'">💵 Cash on Delivery</span>
+            <span *ngIf="selectedPaymentMethod.type === 'bnpl'">⏰ Buy Now Pay Later</span>
+          </p>
           <p *ngIf="selectedPaymentMethod.type === 'card'" class="text-gray-600">
             {{ formatCardNumber(selectedPaymentMethod.cardNumber || '') }}
+          </p>
+          <p *ngIf="selectedPaymentMethod.type === 'upi'" class="text-gray-600">
+            {{ selectedPaymentMethod.upiId }}
           </p>
         </div>
       </div>

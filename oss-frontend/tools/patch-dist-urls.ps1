@@ -1,9 +1,13 @@
-$root = Join-Path -Path $PSScriptRoot -ChildPath "..\dist\oss-frontend\browser"
-if (-not (Test-Path $root)) {
-  Write-Error "Dist folder not found: $root"
+$rootBrowser = Join-Path -Path $PSScriptRoot -ChildPath "..\dist\oss-frontend\browser"
+$rootServer = Join-Path -Path $PSScriptRoot -ChildPath "..\dist\oss-frontend\server"
+$roots = @()
+if (Test-Path $rootBrowser) { $roots += $rootBrowser }
+if (Test-Path $rootServer) { $roots += $rootServer }
+if ($roots.Count -eq 0) {
+  Write-Error "Dist folder not found: $rootBrowser or $rootServer"
   exit 1
 }
-Get-ChildItem -Path $root -Recurse -File | ForEach-Object {
+Get-ChildItem -Path $roots -Recurse -File | ForEach-Object {
   $path = $_.FullName
   try {
     $text = Get-Content -Raw -Encoding UTF8 -ErrorAction Stop $path

@@ -1,5 +1,6 @@
 package com.cart_service.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -8,7 +9,10 @@ public class CartItem {
 
         @Id
         @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
-        @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="cart_id") private Cart cart;
+        @ManyToOne(fetch=FetchType.LAZY) 
+        @JoinColumn(name="cart_id") 
+        @JsonIgnore
+        private Cart cart;
         @Column(nullable=false) private Long productId;
         @Column(nullable=false) private Integer quantity;
         private String variant;

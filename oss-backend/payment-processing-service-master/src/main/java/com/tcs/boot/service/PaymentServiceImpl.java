@@ -42,6 +42,10 @@ public class PaymentServiceImpl implements PaymentService{
 		case WALLET:
 			return PaymentStatus.SUCCESS;
 		case BNPL:
+			return PaymentStatus.PENDING;
+		case COD:
+			return PaymentStatus.SUCCESS; // COD is always successful at order time
+		case UPI:
 			return PaymentStatus.SUCCESS;
 		default:
 			return PaymentStatus.SUCCESS;

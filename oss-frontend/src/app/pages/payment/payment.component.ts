@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/user.service';
 import { PaymentMethod } from '../../services/models';
 
 @Component({
@@ -29,11 +30,17 @@ export class PaymentComponent implements OnInit {
     isDefault: false
   };
   
-  walletTypes: ('apple' | 'google' | 'paypal')[] = ['apple', 'google', 'paypal'];
+  walletTypes: ('apple' | 'google' | 'paypal' | 'paytm' | 'phonepe' | 'amazonpay')[] = 
+    ['apple', 'google', 'paypal', 'paytm', 'phonepe', 'amazonpay'];
+  bnplProviders: ('klarna' | 'afterpay' | 'sezzle' | 'affirm')[] = 
+    ['klarna', 'afterpay', 'sezzle', 'affirm'];
   months: number[] = Array.from({ length: 12 }, (_, i) => i + 1);
   years: number[] = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() + i);
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private userService: UserService
+  ) {}
 
   ngOnInit() {
     this.loadPaymentMethods();
@@ -41,22 +48,64 @@ export class PaymentComponent implements OnInit {
 
   loadPaymentMethods() {
     this.user = this.authService.getCurrentUser();
-    if (this.user && this.user.paymentMethods) {
-      this.paymentMethods = this.user.paymentMethods;
+    if (this.user) {
+      // Load from backend
+      this.userService.getPaymentMethods(this.user.id).subscribe(methods => {
+        this.paymentMethods = methods;
+        if (this.user) {
+          this.user.paymentMethods = methods;
+          this.authService.updateUser(this.user);
+        }
+      });
     }
   }
 
   addPaymentMethod() {
-    if (this.validatePaymentMethod()) {
+    if (this.validatePaymentMethod() && this.user) {
       if (this.newPaymentMethod.isDefault) {
         // Remove default from other methods
         this.paymentMethods.forEach(method => method.isDefault = false);
       }
       
-      this.authService.addPaymentMethod(this.newPaymentMethod);
-      this.loadPaymentMethods();
-      this.resetForm();
-      this.showAddForm = false;
+      // Convert to backend format
+      const provider = this.getProviderString();
+      const token = this.getTokenString();
+      
+      this.userService.addPaymentMethod(this.user.id, provider, token).subscribe(method => {
+        if (method.id) {
+          this.loadPaymentMethods();
+          this.resetForm();
+          this.showAddForm = false;
+        }
+      });
+    }
+  }
+
+  private getProviderString(): string {
+    switch (this.newPaymentMethod.type) {
+      case 'card': return 'CARD';
+      case 'upi': return 'UPI';
+      case 'wallet': return this.newPaymentMethod.walletType?.toUpperCase() || 'WALLET';
+      case 'cod': return 'COD';
+      case 'bnpl': return this.newPaymentMethod.bnplProvider?.toUpperCase() || 'BNPL';
+      default: return 'CARD';
+    }
+  }
+
+  private getTokenString(): string {
+    switch (this.newPaymentMethod.type) {
+      case 'card': 
+        return `${this.newPaymentMethod.cardHolder}|${this.newPaymentMethod.cardNumber?.slice(-4)}|${this.newPaymentMethod.expiryMonth}/${this.newPaymentMethod.expiryYear}`;
+      case 'upi': 
+        return this.newPaymentMethod.upiId || '';
+      case 'wallet': 
+        return this.newPaymentMethod.walletType || '';
+      case 'cod': 
+        return 'COD_TOKEN';
+      case 'bnpl': 
+        return this.newPaymentMethod.bnplProvider || '';
+      default: 
+        return 'DEFAULT_TOKEN';
     }
   }
 
@@ -113,17 +162,25 @@ export class PaymentComponent implements OnInit {
   }
 
   validatePaymentMethod(): boolean {
-    if (this.newPaymentMethod.type === 'card') {
-      return !!(
-        this.newPaymentMethod.cardNumber &&
-        this.newPaymentMethod.cardHolder &&
-        this.newPaymentMethod.expiryMonth &&
-        this.newPaymentMethod.expiryYear
-      );
-    } else if (this.newPaymentMethod.type === 'wallet') {
-      return !!this.newPaymentMethod.walletType;
+    switch (this.newPaymentMethod.type) {
+      case 'card':
+        return !!(
+          this.newPaymentMethod.cardNumber &&
+          this.newPaymentMethod.cardHolder &&
+          this.newPaymentMethod.expiryMonth &&
+          this.newPaymentMethod.expiryYear
+        );
+      case 'upi':
+        return !!this.newPaymentMethod.upiId;
+      case 'wallet':
+        return !!this.newPaymentMethod.walletType;
+      case 'cod':
+        return true; // COD doesn't need validation
+      case 'bnpl':
+        return !!this.newPaymentMethod.bnplProvider;
+      default:
+        return false;
     }
-    return false;
   }
 
   resetForm() {
@@ -162,6 +219,9 @@ export class PaymentComponent implements OnInit {
       case 'apple': return '🍎';
       case 'google': return '📱';
       case 'paypal': return '💳';
+      case 'paytm': return '💼';
+      case 'phonepe': return '📱';
+      case 'amazonpay': return '📦';
       default: return '💼';
     }
   }
@@ -171,7 +231,20 @@ export class PaymentComponent implements OnInit {
       case 'apple': return 'Apple Pay';
       case 'google': return 'Google Pay';
       case 'paypal': return 'PayPal';
+      case 'paytm': return 'Paytm';
+      case 'phonepe': return 'PhonePe';
+      case 'amazonpay': return 'Amazon Pay';
       default: return 'Wallet';
+    }
+  }
+
+  getBnplIcon(provider?: string): string {
+    switch (provider) {
+      case 'klarna': return '🛍️';
+      case 'afterpay': return '⏰';
+      case 'sezzle': return '💳';
+      case 'affirm': return '✅';
+      default: return '⏰';
     }
   }
 }

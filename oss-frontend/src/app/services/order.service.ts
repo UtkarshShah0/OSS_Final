@@ -3,6 +3,10 @@ import { Observable, of } from 'rxjs';
 import { Order, OrderItem, Address, PaymentMethod } from './models';
 import { CartService } from './cart.service';
 import { AuthService } from './auth.service';
+import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs/operators';
+
+const API_GATEWAY = 'http://localhost:9090';
 
 @Injectable({
   providedIn: 'root'
@@ -11,17 +15,18 @@ export class OrderService {
 
   constructor(
     private cartService: CartService,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) { }
 
-  createOrder(shippingAddress: Address, paymentMethod: PaymentMethod): Order {
+  createOrder(shippingAddress: Address, paymentMethod: PaymentMethod): Observable<Order> {
     const cartItems = this.cartService.getCartItems();
     const user = this.authService.getCurrentUser();
-    
+
     const orderItems: OrderItem[] = cartItems.map(item => ({
       productId: item.product.id,
       productName: item.product.name,
-      productImage: item.product.images[0],
+      productImage: item.product.images?.[0] || '',
       quantity: item.quantity,
       price: item.product.price,
       total: item.product.price * item.quantity
@@ -36,7 +41,7 @@ export class OrderService {
     const order: Order = {
       id: 'ORD-' + Date.now(),
       date: new Date().toISOString(),
-      status: 'confirmed',
+      status: 'pending',
       items: orderItems,
       subtotal,
       shipping,
@@ -45,27 +50,33 @@ export class OrderService {
       total,
       shippingAddress,
       paymentMethod,
-      trackingNumber: 'TRK' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+      trackingNumber: '',
       estimatedDelivery: this.calculateDeliveryDate(7)
     };
 
-    // Add order to user's order history if user exists
-    if (user && user.orders) {
-      user.orders.push(order);
-      this.authService.updateUser(user);
+    // If user logged in, send order to backend
+    if (user) {
+      const url = `${API_GATEWAY}/api/orders/`;
+      return this.http.post<Order>(url, order).pipe(map(res => {
+        // Clear cart and update user orders
+        this.cartService.clearCart();
+        try {
+          if (user.orders) user.orders.push(res);
+          else user.orders = [res];
+          this.authService.updateUser(user);
+        } catch {}
+        return res;
+      }));
     }
 
-    // Clear cart
-    this.cartService.clearCart();
-
-    // Save order to localStorage for anonymous users
+    // Anonymous users: store locally and return observable
     if (typeof localStorage !== 'undefined') {
       const orders = JSON.parse(localStorage.getItem('orders') || '[]');
       orders.push(order);
       localStorage.setItem('orders', JSON.stringify(orders));
     }
-
-    return order;
+    this.cartService.clearCart();
+    return of(order);
   }
 
   getOrders(): Observable<Order[]> {
