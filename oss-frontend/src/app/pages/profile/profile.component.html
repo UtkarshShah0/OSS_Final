@@ -127,8 +127,58 @@
       <div *ngIf="activeTab === 'addresses'" class="card p-6">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-900">Saved Addresses</h2>
-          <button class="btn-primary">Add New Address</button>
+          <button (click)="showAddNewAddressForm()" class="btn-primary">Add New Address</button>
         </div>
+
+        <!-- New Address Form -->
+        <div *ngIf="showNewAddressForm" class="bg-gray-50 p-6 rounded-lg mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New Address</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+              <input [(ngModel)]="newAddress.fullName" type="text" class="input-field" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <input [(ngModel)]="newAddress.phone" type="tel" class="input-field" required />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 1</label>
+              <input [(ngModel)]="newAddress.addressLine1" type="text" class="input-field" required />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 2 (Optional)</label>
+              <input [(ngModel)]="newAddress.addressLine2" type="text" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+              <input [(ngModel)]="newAddress.city" type="text" class="input-field" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">State</label>
+              <input [(ngModel)]="newAddress.state" type="text" class="input-field" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+              <input [(ngModel)]="newAddress.zipCode" type="text" class="input-field" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+              <input [(ngModel)]="newAddress.country" type="text" class="input-field" required />
+            </div>
+            <div class="md:col-span-2">
+              <label class="flex items-center">
+                <input [(ngModel)]="newAddress.isDefault" type="checkbox" class="mr-2" />
+                <span class="text-sm text-gray-700">Set as default address</span>
+              </label>
+            </div>
+          </div>
+          <div class="flex space-x-4 mt-6">
+            <button (click)="addNewAddress()" class="btn-primary">Save Address</button>
+            <button (click)="cancelAddAddress()" class="btn-outline">Cancel</button>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div *ngFor="let address of user?.addresses" class="border-2 border-gray-200 rounded-lg p-4">
             <div class="flex justify-between items-start mb-2">
@@ -143,7 +193,6 @@
             <p class="text-gray-600 text-sm">{{ address.country }}</p>
             <p class="text-gray-600 text-sm mt-2">Phone: {{ address.phone }}</p>
             <div class="mt-4 flex space-x-2">
-              <button (click)="editAddress(address)" class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
               <button (click)="deleteAddress(address.id)" class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
             </div>
           </div>
@@ -154,8 +203,111 @@
       <div *ngIf="activeTab === 'payments'" class="card p-6">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-900">Payment Methods</h2>
-          <button class="btn-primary">Add New Payment Method</button>
+          <button (click)="showAddNewPaymentForm()" class="btn-primary">Add New Payment Method</button>
         </div>
+
+        <!-- New Payment Method Form -->
+        <div *ngIf="showNewPaymentForm" class="bg-gray-50 p-6 rounded-lg mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New Payment Method</h3>
+          
+          <!-- Payment Type Selection -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <button
+                (click)="newPaymentMethod.type = 'card'"
+                [class.bg-primary-600]="newPaymentMethod.type === 'card'"
+                [class.text-white]="newPaymentMethod.type === 'card'"
+                [class.bg-gray-100]="newPaymentMethod.type !== 'card'"
+                [class.text-gray-700]="newPaymentMethod.type !== 'card'"
+                class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+              >
+                <span>💳</span>
+                <span>Card</span>
+              </button>
+              <button
+                (click)="newPaymentMethod.type = 'upi'"
+                [class.bg-primary-600]="newPaymentMethod.type === 'upi'"
+                [class.text-white]="newPaymentMethod.type === 'upi'"
+                [class.bg-gray-100]="newPaymentMethod.type !== 'upi'"
+                [class.text-gray-700]="newPaymentMethod.type !== 'upi'"
+                class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+              >
+                <span>📱</span>
+                <span>UPI</span>
+              </button>
+              <button
+                (click)="newPaymentMethod.type = 'cod'"
+                [class.bg-primary-600]="newPaymentMethod.type === 'cod'"
+                [class.text-white]="newPaymentMethod.type === 'cod'"
+                [class.bg-gray-100]="newPaymentMethod.type !== 'cod'"
+                [class.text-gray-700]="newPaymentMethod.type !== 'cod'"
+                class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+              >
+                <span>💵</span>
+                <span>COD</span>
+              </button>
+              <button
+                (click)="newPaymentMethod.type = 'bnpl'"
+                [class.bg-primary-600]="newPaymentMethod.type === 'bnpl'"
+                [class.text-white]="newPaymentMethod.type === 'bnpl'"
+                [class.bg-gray-100]="newPaymentMethod.type !== 'bnpl'"
+                [class.text-gray-700]="newPaymentMethod.type !== 'bnpl'"
+                class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
+              >
+                <span>⏰</span>
+                <span>BNPL</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card Details -->
+          <div *ngIf="newPaymentMethod.type === 'card'" class="space-y-4">
+            <input [(ngModel)]="newPaymentMethod.cardNumber" placeholder="Card Number" class="input-field" maxlength="19" />
+            <input [(ngModel)]="newPaymentMethod.cardHolder" placeholder="Card Holder Name" class="input-field" />
+            <div class="grid grid-cols-2 gap-4">
+              <input type="number" [(ngModel)]="newPaymentMethod.expiryMonth" placeholder="MM" class="input-field" min="1" max="12" />
+              <input type="number" [(ngModel)]="newPaymentMethod.expiryYear" placeholder="YYYY" class="input-field" min="2024" />
+            </div>
+          </div>
+
+          <!-- UPI Details -->
+          <div *ngIf="newPaymentMethod.type === 'upi'">
+            <label class="block text-sm font-medium text-gray-700 mb-2">UPI ID</label>
+            <input [(ngModel)]="newPaymentMethod.upiId" type="text" class="input-field" placeholder="yourname@upi" />
+          </div>
+
+          <!-- BNPL Details -->
+          <div *ngIf="newPaymentMethod.type === 'bnpl'">
+            <label class="block text-sm font-medium text-gray-700 mb-2">BNPL Provider</label>
+            <select [(ngModel)]="newPaymentMethod.bnplProvider" class="input-field">
+              <option value="">Select Provider</option>
+              <option value="Klarna">Klarna</option>
+              <option value="Afterpay">Afterpay</option>
+              <option value="Sezzle">Sezzle</option>
+              <option value="Affirm">Affirm</option>
+            </select>
+          </div>
+
+          <!-- COD Message -->
+          <div *ngIf="newPaymentMethod.type === 'cod'" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p class="text-sm text-yellow-800">💵 Pay cash when your order is delivered</p>
+          </div>
+
+          <!-- Default Option -->
+          <div class="mt-4">
+            <label class="flex items-center">
+              <input [(ngModel)]="newPaymentMethod.isDefault" type="checkbox" class="mr-2" />
+              <span class="text-sm text-gray-700">Set as default payment method</span>
+            </label>
+          </div>
+
+          <div class="flex space-x-4 mt-6">
+            <button (click)="addNewPaymentMethod()" class="btn-primary">Save Payment Method</button>
+            <button (click)="cancelAddPaymentMethod()" class="btn-outline">Cancel</button>
+          </div>
+        </div>
+
         <div class="space-y-4">
           <div *ngFor="let method of user?.paymentMethods" class="border-2 border-gray-200 rounded-lg p-4">
             <div class="flex justify-between items-start">
@@ -166,7 +318,9 @@
                   <span *ngIf="method.type === 'cod'">💵 Cash on Delivery</span>
                   <span *ngIf="method.type === 'bnpl'">⏰ Buy Now Pay Later</span>
                 </h3>
-                <p *ngIf="method.type === 'card'" class="text-gray-600">{{ method.cardNumber }}</p>
+                <p *ngIf="method.type === 'card'" class="text-gray-600">
+                  {{ formatCardNumber(method.cardNumber || '') }}
+                </p>
                 <p *ngIf="method.type === 'card'" class="text-gray-600">{{ method.cardHolder }}</p>
                 <p *ngIf="method.type === 'upi'" class="text-gray-600">{{ method.upiId }}</p>
                 <p *ngIf="method.type === 'bnpl'" class="text-gray-600">{{ method.bnplProvider }}</p>
@@ -177,7 +331,6 @@
               </span>
             </div>
             <div class="mt-4 flex space-x-2">
-              <button (click)="editPaymentMethod(method)" class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
               <button (click)="deletePaymentMethod(method.id)" class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
             </div>
           </div>

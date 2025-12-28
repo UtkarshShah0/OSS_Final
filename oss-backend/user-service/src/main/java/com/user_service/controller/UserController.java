@@ -35,8 +35,16 @@ public class UserController {
 
         }
         @PostMapping("/{userId}/addresses")
-        public Address addAddr(@PathVariable Long userId, @RequestBody Address a){
-            return svc.addAddress(userId, a);
+        public ResponseEntity<?> addAddr(@PathVariable Long userId, @RequestBody Address a){
+            try {
+                System.out.println("UserController.addAddr called with userId: " + userId + ", address: " + a);
+                Address savedAddress = svc.addAddress(userId, a);
+                return ResponseEntity.ok(savedAddress);
+            } catch (Exception e) {
+                System.err.println("Error saving address: " + e.getMessage());
+                e.printStackTrace();
+                return ResponseEntity.status(500).body("Error saving address: " + e.getMessage());
+            }
         }
         @DeleteMapping("/{userId}/addresses/{id}")
         public ResponseEntity<?> delAddr(@PathVariable Long userId, @PathVariable Long id){
@@ -52,6 +60,11 @@ public class UserController {
             return svc.addPayment(userId, body.get("provider"),
                     body.get("token"));
         }
+        @DeleteMapping("/{userId}/payments/{id}")
+        public ResponseEntity<?> delPay(@PathVariable Long userId, @PathVariable Long id){
+            svc.deletePayment(userId, id);
+            return ResponseEntity.ok().build();
+        }
         @GetMapping("/{userId}/wishlist")
         public List<WishlistItem> listWish(@PathVariable Long userId){
             return svc.wishlist(userId);
@@ -64,7 +77,30 @@ public class UserController {
         @DeleteMapping("/{userId}/wishlist/{productId}")
         public ResponseEntity<?> delWish(@PathVariable Long userId,
                                          @PathVariable Long productId){
-            svc.removeWishlist(userId, productId); return ResponseEntity.ok().build();
+            try {
+                System.out.println("UserController.delWish called with userId: " + userId + ", productId: " + productId);
+                svc.removeWishlist(userId, productId);
+                return ResponseEntity.ok().build();
+            } catch (Exception e) {
+                System.err.println("Error deleting wishlist item: " + e.getMessage());
+                e.printStackTrace();
+                return ResponseEntity.status(500).body("Error deleting wishlist item: " + e.getMessage());
+            }
+        }
+        
+        // Alternative endpoint to delete by wishlist item ID
+        @DeleteMapping("/{userId}/wishlist/item/{itemId}")
+        public ResponseEntity<?> delWishById(@PathVariable Long userId,
+                                           @PathVariable Long itemId){
+            try {
+                System.out.println("UserController.delWishById called with userId: " + userId + ", itemId: " + itemId);
+                svc.removeWishlistById(userId, itemId);
+                return ResponseEntity.ok().build();
+            } catch (Exception e) {
+                System.err.println("Error deleting wishlist item by ID: " + e.getMessage());
+                e.printStackTrace();
+                return ResponseEntity.status(500).body("Error deleting wishlist item: " + e.getMessage());
+            }
         }
         @GetMapping("/{userId}/orders")
         public ResponseEntity<List<Map<String,Object>>> history(@PathVariable Long userId){

@@ -117,9 +117,7 @@
         </button>
         <button
           (click)="addToWishlist()"
-          [class.bg-red-600]="isInWishlist()"
-          [class.hover:bg-red-700]="isInWishlist()"
-          class="btn-outline py-4 px-8 text-lg"
+          [class]="isInWishlist() ? 'bg-red-600 hover:bg-red-700 text-white border-red-600 py-4 px-8 text-lg rounded-lg font-semibold transition-colors' : 'btn-outline py-4 px-8 text-lg'"
         >
           {{ isInWishlist() ? '❤️ In Wishlist' : '🤍 Add to Wishlist' }}
         </button>

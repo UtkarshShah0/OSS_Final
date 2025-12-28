@@ -21,8 +21,12 @@ export class UserService {
   }
 
   addAddress(userId: number, address: Address): Observable<Address> {
+    console.log('UserService.addAddress called with:', { userId, address });
     return this.http.post<Address>(`${API_GATEWAY}/users/${userId}/addresses`, address).pipe(
-      catchError(() => of({} as Address))
+      catchError((error) => {
+        console.error('UserService.addAddress error:', error);
+        throw error; // Re-throw the error instead of swallowing it
+      })
     );
   }
 
@@ -45,6 +49,12 @@ export class UserService {
       token
     }).pipe(
       catchError(() => of({} as PaymentMethod))
+    );
+  }
+
+  deletePaymentMethod(userId: number, methodId: number): Observable<any> {
+    return this.http.delete(`${API_GATEWAY}/users/${userId}/payments/${methodId}`).pipe(
+      catchError(() => of({}))
     );
   }
 

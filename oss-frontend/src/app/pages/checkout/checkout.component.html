@@ -7,7 +7,7 @@
       <div *ngFor="let step of steps; let i = index" class="flex items-center flex-1">
         <div class="flex flex-col items-center flex-1">
           <div
-            [class.bg-primary-600]="currentStep > i + 1"
+            [class.bg-green-600]="currentStep > i + 1"
             [class.bg-primary-600]="currentStep === i + 1"
             [class.bg-gray-300]="currentStep < i + 1"
             class="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold mb-2"
@@ -16,7 +16,8 @@
             <span *ngIf="currentStep <= i + 1">{{ i + 1 }}</span>
           </div>
           <span
-            [class.text-primary-600]="currentStep >= i + 1"
+            [class.text-green-600]="currentStep > i + 1"
+            [class.text-primary-600]="currentStep === i + 1"
             [class.text-gray-400]="currentStep < i + 1"
             class="text-sm font-medium"
           >
@@ -24,7 +25,7 @@
           </span>
         </div>
         <div *ngIf="i < steps.length - 1" class="flex-1 h-1 mx-4"
-          [class.bg-primary-600]="currentStep > i + 1"
+          [class.bg-green-600]="currentStep > i + 1"
           [class.bg-gray-300]="currentStep <= i + 1"
         ></div>
       </div>
@@ -255,25 +256,41 @@
 
         <div *ngIf="selectedAddress" class="mb-6">
           <h3 class="font-semibold text-gray-900 mb-2">Shipping Address</h3>
-          <p class="text-gray-600">{{ selectedAddress.fullName }}</p>
-          <p class="text-gray-600">{{ selectedAddress.addressLine1 }}</p>
-          <p class="text-gray-600">{{ selectedAddress.city }}, {{ selectedAddress.state }} {{ selectedAddress.zipCode }}</p>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p *ngIf="selectedAddress.fullName" class="text-gray-900 font-medium">{{ selectedAddress.fullName }}</p>
+            <p *ngIf="selectedAddress.phone" class="text-gray-600 text-sm">Phone: {{ selectedAddress.phone }}</p>
+            <p class="text-gray-600">{{ selectedAddress.addressLine1 }}</p>
+            <p *ngIf="selectedAddress.addressLine2" class="text-gray-600">{{ selectedAddress.addressLine2 }}</p>
+            <p class="text-gray-600">{{ selectedAddress.city }}, {{ selectedAddress.state }} {{ selectedAddress.zipCode }}</p>
+            <p *ngIf="selectedAddress.country" class="text-gray-600">{{ selectedAddress.country }}</p>
+          </div>
         </div>
 
-        <div *ngIf="selectedPaymentMethod">
+        <div *ngIf="selectedPaymentMethod" class="mb-6">
           <h3 class="font-semibold text-gray-900 mb-2">Payment Method</h3>
-          <p class="text-gray-600">
-            <span *ngIf="selectedPaymentMethod.type === 'card'">💳 Card</span>
-            <span *ngIf="selectedPaymentMethod.type === 'upi'">📱 UPI</span>
-            <span *ngIf="selectedPaymentMethod.type === 'cod'">💵 Cash on Delivery</span>
-            <span *ngIf="selectedPaymentMethod.type === 'bnpl'">⏰ Buy Now Pay Later</span>
-          </p>
-          <p *ngIf="selectedPaymentMethod.type === 'card'" class="text-gray-600">
-            {{ formatCardNumber(selectedPaymentMethod.cardNumber || '') }}
-          </p>
-          <p *ngIf="selectedPaymentMethod.type === 'upi'" class="text-gray-600">
-            {{ selectedPaymentMethod.upiId }}
-          </p>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-gray-900 font-medium">
+              <span *ngIf="selectedPaymentMethod.type === 'card'">💳 Credit/Debit Card</span>
+              <span *ngIf="selectedPaymentMethod.type === 'upi'">📱 UPI Payment</span>
+              <span *ngIf="selectedPaymentMethod.type === 'cod'">💵 Cash on Delivery</span>
+              <span *ngIf="selectedPaymentMethod.type === 'bnpl'">⏰ Buy Now Pay Later</span>
+            </p>
+            <p *ngIf="selectedPaymentMethod.type === 'card' && selectedPaymentMethod.cardNumber" class="text-gray-600">
+              {{ formatCardNumber(selectedPaymentMethod.cardNumber) }}
+            </p>
+            <p *ngIf="selectedPaymentMethod.type === 'card' && selectedPaymentMethod.cardHolder" class="text-gray-600">
+              {{ selectedPaymentMethod.cardHolder }}
+            </p>
+            <p *ngIf="selectedPaymentMethod.type === 'upi' && selectedPaymentMethod.upiId" class="text-gray-600">
+              {{ selectedPaymentMethod.upiId }}
+            </p>
+            <p *ngIf="selectedPaymentMethod.type === 'bnpl' && selectedPaymentMethod.bnplProvider" class="text-gray-600">
+              Provider: {{ selectedPaymentMethod.bnplProvider }}
+            </p>
+            <p *ngIf="selectedPaymentMethod.type === 'cod'" class="text-gray-600">
+              Pay cash when your order is delivered
+            </p>
+          </div>
         </div>
       </div>
 

@@ -164,6 +164,11 @@ export class AuthService {
     if (user && !user.wishlist.includes(productId)) {
       user.wishlist.push(productId);
       this.updateUser(user);
+      
+      // Also sync with backend
+      this.http.post(`${API_GATEWAY}/users/${user.id}/wishlist`, { productId }).pipe(
+        catchError(() => of({}))
+      ).subscribe();
     }
   }
 
@@ -172,6 +177,11 @@ export class AuthService {
     if (user) {
       user.wishlist = user.wishlist.filter(id => id !== productId);
       this.updateUser(user);
+      
+      // Also sync with backend
+      this.http.delete(`${API_GATEWAY}/users/${user.id}/wishlist/${productId}`).pipe(
+        catchError(() => of({}))
+      ).subscribe();
     }
   }
 
