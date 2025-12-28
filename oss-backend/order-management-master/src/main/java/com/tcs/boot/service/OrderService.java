@@ -20,4 +20,6 @@ public interface OrderService {
     Order trackOrder(String orderId);
 
     Map<String, Object> createOrderFromMap(Map<String, Object> orderData);
+    
+    Order createOrderFromFrontend(Map<String, Object> orderData);
 }

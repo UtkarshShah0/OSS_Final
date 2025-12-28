@@ -171,11 +171,12 @@ export class ProductsComponent implements OnInit {
   }
 
   formatPrice(price: number): string {
+    const numPrice = Number(price) || 0;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(price);
+    }).format(numPrice);
   }
 
   selectCategory(categorySlug: string) {

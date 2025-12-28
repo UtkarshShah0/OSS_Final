@@ -69,14 +69,13 @@ export interface Address {
 
 export interface PaymentMethod {
   id: number;
-  type: 'card' | 'wallet' | 'upi' | 'cod' | 'bnpl';
+  type: 'card' | 'upi' | 'cod' | 'bnpl';
   cardNumber?: string;
   cardHolder?: string;
   expiryMonth?: number;
   expiryYear?: number;
-  walletType?: 'apple' | 'google' | 'paypal' | 'paytm' | 'phonepe' | 'amazonpay';
   upiId?: string;
-  bnplProvider?: 'klarna' | 'afterpay' | 'sezzle' | 'affirm';
+  bnplProvider?: 'Klarna' | 'Afterpay' | 'Sezzle' | 'Affirm';
   isDefault: boolean;
 }
 

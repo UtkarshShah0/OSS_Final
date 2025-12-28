@@ -30,10 +30,8 @@ export class PaymentComponent implements OnInit {
     isDefault: false
   };
   
-  walletTypes: ('apple' | 'google' | 'paypal' | 'paytm' | 'phonepe' | 'amazonpay')[] = 
-    ['apple', 'google', 'paypal', 'paytm', 'phonepe', 'amazonpay'];
-  bnplProviders: ('klarna' | 'afterpay' | 'sezzle' | 'affirm')[] = 
-    ['klarna', 'afterpay', 'sezzle', 'affirm'];
+  bnplProviders: ('Klarna' | 'Afterpay' | 'Sezzle' | 'Affirm')[] = 
+    ['Klarna', 'Afterpay', 'Sezzle', 'Affirm'];
   months: number[] = Array.from({ length: 12 }, (_, i) => i + 1);
   years: number[] = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() + i);
 
@@ -85,9 +83,8 @@ export class PaymentComponent implements OnInit {
     switch (this.newPaymentMethod.type) {
       case 'card': return 'CARD';
       case 'upi': return 'UPI';
-      case 'wallet': return this.newPaymentMethod.walletType?.toUpperCase() || 'WALLET';
       case 'cod': return 'COD';
-      case 'bnpl': return this.newPaymentMethod.bnplProvider?.toUpperCase() || 'BNPL';
+      case 'bnpl': return 'BNPL';
       default: return 'CARD';
     }
   }
@@ -98,8 +95,6 @@ export class PaymentComponent implements OnInit {
         return `${this.newPaymentMethod.cardHolder}|${this.newPaymentMethod.cardNumber?.slice(-4)}|${this.newPaymentMethod.expiryMonth}/${this.newPaymentMethod.expiryYear}`;
       case 'upi': 
         return this.newPaymentMethod.upiId || '';
-      case 'wallet': 
-        return this.newPaymentMethod.walletType || '';
       case 'cod': 
         return 'COD_TOKEN';
       case 'bnpl': 
@@ -172,8 +167,6 @@ export class PaymentComponent implements OnInit {
         );
       case 'upi':
         return !!this.newPaymentMethod.upiId;
-      case 'wallet':
-        return !!this.newPaymentMethod.walletType;
       case 'cod':
         return true; // COD doesn't need validation
       case 'bnpl':
@@ -214,36 +207,12 @@ export class PaymentComponent implements OnInit {
     return `**** **** **** ${last4}`;
   }
 
-  getWalletIcon(walletType?: string): string {
-    switch (walletType) {
-      case 'apple': return '🍎';
-      case 'google': return '📱';
-      case 'paypal': return '💳';
-      case 'paytm': return '💼';
-      case 'phonepe': return '📱';
-      case 'amazonpay': return '📦';
-      default: return '💼';
-    }
-  }
-
-  getWalletName(walletType?: string): string {
-    switch (walletType) {
-      case 'apple': return 'Apple Pay';
-      case 'google': return 'Google Pay';
-      case 'paypal': return 'PayPal';
-      case 'paytm': return 'Paytm';
-      case 'phonepe': return 'PhonePe';
-      case 'amazonpay': return 'Amazon Pay';
-      default: return 'Wallet';
-    }
-  }
-
   getBnplIcon(provider?: string): string {
     switch (provider) {
-      case 'klarna': return '🛍️';
-      case 'afterpay': return '⏰';
-      case 'sezzle': return '💳';
-      case 'affirm': return '✅';
+      case 'Klarna': return '🛍️';
+      case 'Afterpay': return '⏰';
+      case 'Sezzle': return '💳';
+      case 'Affirm': return '✅';
       default: return '⏰';
     }
   }

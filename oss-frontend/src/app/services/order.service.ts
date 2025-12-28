@@ -33,38 +33,48 @@ export class OrderService {
     }));
 
     const subtotal = this.cartService.getSubtotal();
-    const shipping = subtotal > 50000 ? 0 : 500; // Free shipping over ₹50,000
-    const tax = subtotal * 0.18; // 18% GST
+    const shipping = subtotal > 50000 ? 0 : 500;
+    const tax = Number((subtotal * 0.18).toFixed(2));
     const discount = this.cartService.getTotalDiscount();
-    const total = subtotal + shipping + tax - discount;
+    const total = Number((subtotal + shipping + tax - discount).toFixed(2));
 
     const order: Order = {
       id: 'ORD-' + Date.now(),
       date: new Date().toISOString(),
       status: 'pending',
       items: orderItems,
-      subtotal,
-      shipping,
-      tax,
-      discount,
-      total,
+      subtotal: subtotal,
+      shipping: shipping,
+      tax: tax,
+      discount: discount,
+      total: total,
       shippingAddress,
       paymentMethod,
       trackingNumber: '',
       estimatedDelivery: this.calculateDeliveryDate(7)
     };
 
-    // If user logged in, send order to backend
+    // If user logged in, send complete order to backend
     if (user) {
+      // Add user ID to order data
+      const orderData = {
+        ...order,
+        userId: user.id,
+        customerId: user.id
+      };
+
       const url = `${API_GATEWAY}/api/orders/`;
-      return this.http.post<Order>(url, order).pipe(map(res => {
-        // Clear cart and update user orders
+      return this.http.post<Order>(url, orderData).pipe(map(res => {
+        // Clear cart after successful order
         this.cartService.clearCart();
+        
+        // Update user orders
         try {
           if (user.orders) user.orders.push(res);
           else user.orders = [res];
           this.authService.updateUser(user);
         } catch {}
+        
         return res;
       }));
     }

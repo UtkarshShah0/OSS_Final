@@ -153,15 +153,23 @@ export class ProfileComponent implements OnInit {
   }
 
   formatPrice(price: number): string {
+    const numPrice = Number(price) || 0;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(price);
+    }).format(numPrice);
   }
 
   formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+    if (!dateString) return 'Invalid Date';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+    
+    return date.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

@@ -1,7 +1,7 @@
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, forkJoin } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { Product } from './models';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { AuthService } from './auth.service';
@@ -12,6 +12,7 @@ const API_GATEWAY = 'http://localhost:9090';
 export interface CartItem {
   product: Product;
   quantity: number;
+  itemId?: number; // Backend cart item ID
 }
 
 @Injectable({
@@ -22,12 +23,18 @@ export class CartService {
   private cartSubject = new BehaviorSubject<CartItem[]>([]);
   public cart$: Observable<CartItem[]> = this.cartSubject.asObservable();
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private http: HttpClient, private auth: AuthService, private productService: ProductService) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object, 
+    private http: HttpClient, 
+    private auth: AuthService,
+    private productService: ProductService
+  ) {
     this.loadCartFromStorage();
-    // When user logs in, sync local cart to server and load server cart
+    
+    // Load from database when user logs in
     this.auth.currentUser$.subscribe(user => {
       if (user) {
-        this.syncLocalCartToServer(user.id).then(() => this.fetchCartFromServer(user.id));
+        this.loadCartFromDatabase(user.id);
       }
     });
   }
@@ -55,7 +62,90 @@ export class CartService {
     this.cartSubject.next(this.cartItems);
   }
 
+  private loadCartFromDatabase(userId: number): void {
+    this.http.get(`${API_GATEWAY}/cart/${userId}`, { responseType: 'text' }).pipe(
+      catchError(() => of('{"items":[]}')),
+      map(response => {
+        try {
+          return JSON.parse(response);
+        } catch {
+          return { items: [] };
+        }
+      })
+    ).subscribe(cart => {
+      if (cart && cart.items && cart.items.length > 0) {
+        // Load products for cart items
+        const productCalls = cart.items.map((item: any) =>
+          this.productService.getProductById(item.productId).pipe(
+            catchError((error) => {
+              console.warn(`Product ${item.productId} not found, removing from cart`);
+              // Remove invalid product from database cart
+              this.http.delete(`${API_GATEWAY}/cart/${userId}/items/${item.id}`, { responseType: 'text' }).pipe(
+                catchError(() => of(''))
+              ).subscribe();
+              return of(null);
+            })
+          )
+        );
+        
+        forkJoin(productCalls).subscribe((products: any) => {
+          this.cartItems = products.map((product: Product | null, index: number) => {
+            const cartItem = cart.items[index];
+            if (!product) {
+              return null; // Skip invalid products
+            }
+            return {
+              product: product,
+              quantity: cartItem.quantity,
+              itemId: cartItem.id
+            };
+          }).filter((item: CartItem | null) => item !== null) as CartItem[];
+          
+          this.saveCartToStorage();
+        });
+      } else {
+        // Database cart is empty, sync local cart if exists
+        if (this.cartItems.length > 0) {
+          this.syncLocalCartToDatabase(userId);
+        }
+      }
+    });
+  }
+
+  private syncLocalCartToDatabase(userId: number): void {
+    // Sync local cart items to database
+    this.cartItems.forEach(item => {
+      this.addToCartDatabase(userId, item.product.id, item.quantity).pipe(
+        catchError((error) => {
+          console.warn('Failed to sync cart item to database:', error);
+          return of('error');
+        })
+      ).subscribe();
+    });
+  }
+
   addToCart(product: Product, quantity: number = 1): void {
+    const user = this.auth.getCurrentUser();
+    
+    if (user) {
+      // Logged in: Add to database first
+      this.addToCartDatabase(user.id, product.id, quantity).subscribe({
+        next: () => {
+          // Update local cart after successful database update
+          this.updateLocalCart(product, quantity);
+        },
+        error: () => {
+          // Fallback to local cart if database fails
+          this.updateLocalCart(product, quantity);
+        }
+      });
+    } else {
+      // Guest: Add to local cart only
+      this.updateLocalCart(product, quantity);
+    }
+  }
+
+  private updateLocalCart(product: Product, quantity: number): void {
     const existingItem = this.cartItems.find(item => item.product.id === product.id);
     
     if (existingItem) {
@@ -65,43 +155,57 @@ export class CartService {
     }
     
     this.saveCartToStorage();
-    // If user logged in, try to add to remote cart as well
-    const user = this.auth.getCurrentUser();
-    if (user) {
-      this.addToCartRemote(user.id, product.id, quantity).subscribe();
-    }
   }
 
   removeFromCart(productId: number): void {
     const user = this.auth.getCurrentUser();
-    if (user) {
-      const url = `${API_GATEWAY}/cart/${user.id}/items/${productId}`;
-      this.http.delete(url).pipe(catchError(() => of(null))).subscribe(() => this.fetchCartFromServer(user.id));
-      return;
+    const item = this.cartItems.find(item => item.product.id === productId);
+    
+    if (user && item?.itemId) {
+      // Logged in: Remove from database first
+      this.http.delete(`${API_GATEWAY}/cart/${user.id}/items/${item.itemId}`, { responseType: 'text' }).pipe(
+        catchError(() => of(''))
+      ).subscribe(() => {
+        this.removeFromLocalCart(productId);
+      });
+    } else {
+      // Guest or fallback: Remove from local cart
+      this.removeFromLocalCart(productId);
     }
+  }
+
+  private removeFromLocalCart(productId: number): void {
     this.cartItems = this.cartItems.filter(item => item.product.id !== productId);
     this.saveCartToStorage();
   }
 
   updateQuantity(productId: number, quantity: number): void {
-    const user = this.auth.getCurrentUser();
-    if (user) {
-      if (quantity <= 0) {
-        this.removeFromCart(productId);
-        return;
-      }
-      const url = `${API_GATEWAY}/cart/${user.id}/items/${productId}?quantity=${quantity}`;
-      this.http.put(url, null).pipe(catchError(() => of(null))).subscribe(() => this.fetchCartFromServer(user.id));
+    if (quantity <= 0) {
+      this.removeFromCart(productId);
       return;
     }
+
+    const user = this.auth.getCurrentUser();
+    const item = this.cartItems.find(item => item.product.id === productId);
+    
+    if (user && item?.itemId) {
+      // Logged in: Update database first
+      this.http.put(`${API_GATEWAY}/cart/${user.id}/items/${item.itemId}?quantity=${quantity}`, {}, { responseType: 'text' }).pipe(
+        catchError(() => of(''))
+      ).subscribe(() => {
+        this.updateLocalQuantity(productId, quantity);
+      });
+    } else {
+      // Guest or fallback: Update local cart
+      this.updateLocalQuantity(productId, quantity);
+    }
+  }
+
+  private updateLocalQuantity(productId: number, quantity: number): void {
     const item = this.cartItems.find(item => item.product.id === productId);
     if (item) {
-      if (quantity <= 0) {
-        this.removeFromCart(productId);
-      } else {
-        item.quantity = quantity;
-        this.saveCartToStorage();
-      }
+      item.quantity = quantity;
+      this.saveCartToStorage();
     }
   }
 
@@ -128,6 +232,20 @@ export class CartService {
   }
 
   clearCart(): void {
+    const user = this.auth.getCurrentUser();
+    
+    if (user) {
+      // Clear database cart
+      this.cartItems.forEach(item => {
+        if (item.itemId) {
+          this.http.delete(`${API_GATEWAY}/cart/${user.id}/items/${item.itemId}`, { responseType: 'text' }).pipe(
+            catchError(() => of(''))
+          ).subscribe();
+        }
+      });
+    }
+    
+    // Clear local cart
     this.cartItems = [];
     this.saveCartToStorage();
   }
@@ -136,52 +254,15 @@ export class CartService {
     return this.cartItems.some(item => item.product.id === productId);
   }
 
-  // Remote cart integration
-  private addToCartRemote(userId: number, productId: number, quantity: number) {
+  // Database operations
+  private addToCartDatabase(userId: number, productId: number, quantity: number): Observable<any> {
     const url = `${API_GATEWAY}/cart/${userId}/items`;
-    const params = new HttpParams().set('productId', `${productId}`).set('quantity', `${quantity}`);
-    return this.http.post(url, null, { params });
-  }
-
-  private async syncLocalCartToServer(userId: number): Promise<void> {
-    const items = this.cartItems.slice();
-    for (const it of items) {
-      try {
-        await this.addToCartRemote(userId, it.product.id, it.quantity).toPromise();
-      } catch (e) {
-        // ignore per-item errors
-      }
-    }
-  }
-
-  fetchCartFromServer(userId: number): void {
-    const url = `${API_GATEWAY}/cart/${userId}`;
-    this.http.get<any>(url).pipe(catchError(() => of(null))).subscribe(cart => {
-      if (!cart || !Array.isArray(cart.items)) {
-        this.cartItems = [];
-        this.saveCartToStorage();
-        return;
-      }
-      const productCalls: Observable<Product | null>[] = cart.items.map((it: any) =>
-        this.productService.getProductById(it.productId).pipe(catchError(() => of(null)))
-      );
-      if (productCalls.length === 0) {
-        this.cartItems = [];
-        this.saveCartToStorage();
-        return;
-      }
-      forkJoin(productCalls).subscribe((products: (Product | null)[]) => {
-        this.cartItems = products.map((p: Product | null, idx: number) => {
-          const qty = cart.items[idx]?.quantity || 1;
-          if (p) {
-            return { product: p as Product, quantity: qty } as CartItem;
-          }
-          // fallback minimal product object
-          return { product: { id: cart.items[idx].productId } as Product, quantity: qty } as CartItem;
-        });
-        this.saveCartToStorage();
-      });
-    });
+    const params = new HttpParams()
+      .set('productId', productId.toString())
+      .set('quantity', quantity.toString());
+    
+    return this.http.post(url, null, { params, responseType: 'text' }).pipe(
+      catchError(() => of('error'))
+    );
   }
 }
-

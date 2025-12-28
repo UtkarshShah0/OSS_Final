@@ -126,8 +126,19 @@ export class CheckoutComponent implements OnInit {
   }
 
   validatePaymentMethod(): boolean {
-    return !!(this.newPaymentMethod.cardNumber && this.newPaymentMethod.cardHolder && 
-              this.newPaymentMethod.expiryMonth && this.newPaymentMethod.expiryYear);
+    switch (this.newPaymentMethod.type) {
+      case 'card':
+        return !!(this.newPaymentMethod.cardNumber && this.newPaymentMethod.cardHolder && 
+                  this.newPaymentMethod.expiryMonth && this.newPaymentMethod.expiryYear);
+      case 'upi':
+        return !!this.newPaymentMethod.upiId;
+      case 'cod':
+        return true; // COD doesn't need validation
+      case 'bnpl':
+        return !!this.newPaymentMethod.bnplProvider;
+      default:
+        return false;
+    }
   }
 
   resetNewAddress() {
@@ -179,19 +190,20 @@ export class CheckoutComponent implements OnInit {
   }
 
   getTax(): number {
-    return this.getSubtotal() * 0.18;
+    return Number((this.getSubtotal() * 0.18).toFixed(2));
   }
 
   getTotal(): number {
-    return this.getSubtotal() + this.getShipping() + this.getTax() - this.getTotalDiscount();
+    return Number((this.getSubtotal() + this.getShipping() + this.getTax() - this.getTotalDiscount()).toFixed(2));
   }
 
   formatPrice(price: number): string {
+    const numPrice = Number(price) || 0;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(price);
+    }).format(numPrice);
   }
 
   formatCardNumber(cardNumber: string): string {

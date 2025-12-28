@@ -161,10 +161,16 @@
             <div class="flex justify-between items-start">
               <div>
                 <h3 class="font-semibold text-gray-900">
-                  {{ method.type === 'card' ? '💳 Card' : '💼 Wallet' }}
+                  <span *ngIf="method.type === 'card'">💳 Card</span>
+                  <span *ngIf="method.type === 'upi'">📱 UPI</span>
+                  <span *ngIf="method.type === 'cod'">💵 Cash on Delivery</span>
+                  <span *ngIf="method.type === 'bnpl'">⏰ Buy Now Pay Later</span>
                 </h3>
                 <p *ngIf="method.type === 'card'" class="text-gray-600">{{ method.cardNumber }}</p>
                 <p *ngIf="method.type === 'card'" class="text-gray-600">{{ method.cardHolder }}</p>
+                <p *ngIf="method.type === 'upi'" class="text-gray-600">{{ method.upiId }}</p>
+                <p *ngIf="method.type === 'bnpl'" class="text-gray-600">{{ method.bnplProvider }}</p>
+                <p *ngIf="method.type === 'cod'" class="text-gray-600">Pay cash on delivery</p>
               </div>
               <span *ngIf="method.isDefault" class="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium">
                 Default

@@ -83,6 +83,58 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
+    @Override
+    public boolean reduceStock(Long productId, Integer quantity) {
+        try {
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+            
+            // Check if sufficient stock is available
+            if (product.getStock() < quantity) {
+                System.err.println("Insufficient stock for product " + productId + 
+                                 ". Available: " + product.getStock() + ", Requested: " + quantity);
+                return false;
+            }
+            
+            // Reduce stock
+            int newStock = product.getStock() - quantity;
+            product.setStock(newStock);
+            
+            // Update availability status based on new stock level
+            if (newStock == 0) {
+                product.setAvailabilityStatus(AvailabilityStatus.OUT_OF_STOCK);
+            } else if (newStock <= 5) { // Consider low stock threshold as 5
+                product.setAvailabilityStatus(AvailabilityStatus.LOW_STOCK);
+            } else {
+                product.setAvailabilityStatus(AvailabilityStatus.IN_STOCK);
+            }
+            
+            productRepository.save(product);
+            System.out.println("Stock reduced for product " + productId + 
+                             ". New stock: " + newStock + ", Status: " + product.getAvailabilityStatus());
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("Error reducing stock for product " + productId + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean checkStockAvailability(Long productId, Integer quantity) {
+        try {
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+            
+            return product.getStock() >= quantity && 
+                   product.getAvailabilityStatus() != AvailabilityStatus.OUT_OF_STOCK;
+                   
+        } catch (Exception e) {
+            System.err.println("Error checking stock availability for product " + productId + ": " + e.getMessage());
+            return false;
+        }
+    }
+
     private ProductResponse mapToResponse(Product product) {
 
         ProductResponse response = new ProductResponse();

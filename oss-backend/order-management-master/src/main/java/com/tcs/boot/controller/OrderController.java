@@ -19,10 +19,10 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    // Place Order
+    // Place Order - accepts complete order data from frontend
     @PostMapping("/")
-    public ResponseEntity<Order> placeOrder(@RequestBody Order order) {
-        return ResponseEntity.ok(orderService.placeOrder(order));
+    public ResponseEntity<Order> placeOrder(@RequestBody Map<String, Object> orderData) {
+        return ResponseEntity.ok(orderService.createOrderFromFrontend(orderData));
     }
 
     // Get Order
@@ -58,7 +58,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.trackOrder(orderId));
     }
 
-    // Create order from external service (for checkout)
+    // Create order from external service (for checkout) - legacy endpoint
     @PostMapping("/create")
     public ResponseEntity<Map<String, Object>> createOrder(@RequestBody Map<String, Object> orderData) {
         return ResponseEntity.ok(orderService.createOrderFromMap(orderData));

@@ -112,7 +112,6 @@
                 <p class="font-semibold text-gray-900">
                   <span *ngIf="method.type === 'card'">💳 Card</span>
                   <span *ngIf="method.type === 'upi'">📱 UPI</span>
-                  <span *ngIf="method.type === 'wallet'">💼 Wallet</span>
                   <span *ngIf="method.type === 'cod'">💵 Cash on Delivery</span>
                   <span *ngIf="method.type === 'bnpl'">⏰ Buy Now Pay Later</span>
                 </p>
@@ -152,7 +151,7 @@
             <!-- Payment Type Selection -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
-              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <button
                   (click)="newPaymentMethod.type = 'card'"
                   [class.bg-primary-600]="newPaymentMethod.type === 'card'"
@@ -174,17 +173,6 @@
                 >
                   <span>📱</span>
                   <span>UPI</span>
-                </button>
-                <button
-                  (click)="newPaymentMethod.type = 'wallet'"
-                  [class.bg-primary-600]="newPaymentMethod.type === 'wallet'"
-                  [class.text-white]="newPaymentMethod.type === 'wallet'"
-                  [class.bg-gray-100]="newPaymentMethod.type !== 'wallet'"
-                  [class.text-gray-700]="newPaymentMethod.type !== 'wallet'"
-                  class="px-3 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1 text-sm"
-                >
-                  <span>💼</span>
-                  <span>Wallet</span>
                 </button>
                 <button
                   (click)="newPaymentMethod.type = 'cod'"
@@ -224,6 +212,17 @@
             <!-- UPI Details -->
             <div *ngIf="newPaymentMethod.type === 'upi'" class="space-y-4">
               <input [(ngModel)]="newPaymentMethod.upiId" placeholder="UPI ID (e.g., yourname@paytm)" class="input-field" />
+            </div>
+
+            <!-- BNPL Details -->
+            <div *ngIf="newPaymentMethod.type === 'bnpl'" class="space-y-4">
+              <select [(ngModel)]="newPaymentMethod.bnplProvider" class="input-field">
+                <option value="">Select BNPL Provider</option>
+                <option value="Klarna">Klarna</option>
+                <option value="Afterpay">Afterpay</option>
+                <option value="Sezzle">Sezzle</option>
+                <option value="Affirm">Affirm</option>
+              </select>
             </div>
 
             <!-- COD Info -->
@@ -266,7 +265,6 @@
           <p class="text-gray-600">
             <span *ngIf="selectedPaymentMethod.type === 'card'">💳 Card</span>
             <span *ngIf="selectedPaymentMethod.type === 'upi'">📱 UPI</span>
-            <span *ngIf="selectedPaymentMethod.type === 'wallet'">💼 Wallet</span>
             <span *ngIf="selectedPaymentMethod.type === 'cod'">💵 Cash on Delivery</span>
             <span *ngIf="selectedPaymentMethod.type === 'bnpl'">⏰ Buy Now Pay Later</span>
           </p>

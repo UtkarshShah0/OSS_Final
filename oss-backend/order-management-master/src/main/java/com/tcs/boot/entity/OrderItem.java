@@ -14,67 +14,98 @@ public class OrderItem {
     private Long id;
 
     private Long productId;
+    private String productName;
+    private String productImage;
     private Integer quantity;
     private Double price;
+    private Double total;
 
     @ManyToOne
     @JoinColumn(name = "order_id")
     @JsonBackReference
     private Order order;
 
-	public Long getId() {
-		return id;
-	}
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public Long getProductId() {
-		return productId;
-	}
+    public Long getProductId() {
+        return productId;
+    }
 
-	public void setProductId(Long productId) {
-		this.productId = productId;
-	}
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
 
-	public Integer getQuantity() {
-		return quantity;
-	}
+    public String getProductName() {
+        return productName;
+    }
 
-	public void setQuantity(Integer quantity) {
-		this.quantity = quantity;
-	}
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
 
-	public Double getPrice() {
-		return price;
-	}
+    public String getProductImage() {
+        return productImage;
+    }
 
-	public void setPrice(Double price) {
-		this.price = price;
-	}
+    public void setProductImage(String productImage) {
+        this.productImage = productImage;
+    }
 
-	public Order getOrder() {
-		return order;
-	}
+    public Integer getQuantity() {
+        return quantity;
+    }
 
-	public void setOrder(Order order) {
-		this.order = order;
-	}
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
 
-	public OrderItem(Long id, Long productId, Integer quantity, Double price, Order order) {
-		super();
-		this.id = id;
-		this.productId = productId;
-		this.quantity = quantity;
-		this.price = price;
-		this.order = order;
-	}
+    public Double getPrice() {
+        return price;
+    }
 
-	public OrderItem() {
-		super();
-	}
-    
-    
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public Double getTotal() {
+        return total;
+    }
+
+    public void setTotal(Double total) {
+        this.total = total;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    // Constructors
+    public OrderItem() {
+        super();
+    }
+
+    public OrderItem(Long id, Long productId, String productName, String productImage, 
+                     Integer quantity, Double price, Double total, Order order) {
+        super();
+        this.id = id;
+        this.productId = productId;
+        this.productName = productName;
+        this.productImage = productImage;
+        this.quantity = quantity;
+        this.price = price;
+        this.total = total;
+        this.order = order;
+    }
 }
 

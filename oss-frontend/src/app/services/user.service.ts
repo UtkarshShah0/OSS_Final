@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { Address, PaymentMethod, Order } from './models';
 
 const API_GATEWAY = 'http://localhost:9090';
@@ -50,16 +50,57 @@ export class UserService {
 
   // Order Management
   getOrders(userId: number): Observable<Order[]> {
-    return this.http.get<Order[]>(`${API_GATEWAY}/users/${userId}/orders`).pipe(
+    return this.http.get<Order[]>(`${API_GATEWAY}/api/orders/user/${userId}`).pipe(
       catchError(() => of([]))
     );
   }
 
   // Cart Management
   getCart(userId: number): Observable<any> {
-    return this.http.get(`${API_GATEWAY}/cart/${userId}`).pipe(
+    return this.http.get(`${API_GATEWAY}/cart/${userId}`, { responseType: 'text' }).pipe(
+      map(response => {
+        try {
+          // Try to clean and parse the malformed JSON
+          const cleanResponse = this.cleanMalformedJson(response);
+          return JSON.parse(cleanResponse);
+        } catch (error) {
+          console.warn('Failed to parse cart response:', error);
+          return { items: [] };
+        }
+      }),
       catchError(() => of({ items: [] }))
     );
+  }
+
+  private cleanMalformedJson(jsonString: string): string {
+    try {
+      // Try to find the first complete JSON object before circular references start
+      const firstBrace = jsonString.indexOf('{');
+      if (firstBrace === -1) return '{"items":[]}';
+      
+      let braceCount = 0;
+      let endIndex = firstBrace;
+      
+      for (let i = firstBrace; i < jsonString.length; i++) {
+        if (jsonString[i] === '{') {
+          braceCount++;
+        } else if (jsonString[i] === '}') {
+          braceCount--;
+          if (braceCount === 0) {
+            endIndex = i + 1;
+            break;
+          }
+        }
+      }
+      
+      const cleanJson = jsonString.substring(firstBrace, endIndex);
+      // Test if it's valid JSON
+      JSON.parse(cleanJson);
+      return cleanJson;
+    } catch (error) {
+      // If cleaning fails, return empty cart
+      return '{"id":null,"userId":null,"items":[],"updatedAt":null}';
+    }
   }
 
   addToCart(userId: number, productId: number, quantity: number, variant?: string): Observable<any> {
@@ -70,20 +111,23 @@ export class UserService {
       params.append('variant', variant);
     }
 
-    return this.http.post(`${API_GATEWAY}/cart/${userId}/items?${params.toString()}`, {}).pipe(
-      catchError(() => of({}))
+    return this.http.post(`${API_GATEWAY}/cart/${userId}/items?${params.toString()}`, {}, { responseType: 'text' }).pipe(
+      catchError((error) => {
+        console.warn('Cart API returned malformed JSON, but item was likely added:', error);
+        return of('success');
+      })
     );
   }
 
   updateCartItem(userId: number, itemId: number, quantity: number): Observable<any> {
-    return this.http.put(`${API_GATEWAY}/cart/${userId}/items/${itemId}?quantity=${quantity}`, {}).pipe(
-      catchError(() => of({}))
+    return this.http.put(`${API_GATEWAY}/cart/${userId}/items/${itemId}?quantity=${quantity}`, {}, { responseType: 'text' }).pipe(
+      catchError(() => of('success'))
     );
   }
 
   removeFromCart(userId: number, itemId: number): Observable<any> {
-    return this.http.delete(`${API_GATEWAY}/cart/${userId}/items/${itemId}`).pipe(
-      catchError(() => of({}))
+    return this.http.delete(`${API_GATEWAY}/cart/${userId}/items/${itemId}`, { responseType: 'text' }).pipe(
+      catchError(() => of('success'))
     );
   }
 

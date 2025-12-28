@@ -12,4 +12,9 @@ public interface ProductService {
     ProductResponse getProductById(Long id);
 
     List<ProductResponse> getAllProducts();
+    
+    // Inventory management methods
+    boolean reduceStock(Long productId, Integer quantity);
+    
+    boolean checkStockAvailability(Long productId, Integer quantity);
 }

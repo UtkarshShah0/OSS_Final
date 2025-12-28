@@ -56,6 +56,23 @@ public class ProductController {
 		return ResponseEntity.ok(productService.getAllProducts());
 	}
 
+	// Inventory management endpoints
+	@PutMapping("/{id}/reduce-stock")
+	public ResponseEntity<String> reduceStock(@PathVariable Long id, @RequestParam Integer quantity) {
+		boolean success = productService.reduceStock(id, quantity);
+		if (success) {
+			return ResponseEntity.ok("Stock reduced successfully");
+		} else {
+			return ResponseEntity.badRequest().body("Failed to reduce stock - insufficient quantity or product not found");
+		}
+	}
+
+	@GetMapping("/{id}/check-stock")
+	public ResponseEntity<Boolean> checkStockAvailability(@PathVariable Long id, @RequestParam Integer quantity) {
+		boolean available = productService.checkStockAvailability(id, quantity);
+		return ResponseEntity.ok(available);
+	}
+
 	@PostMapping("/{id}/image")
 	public ResponseEntity<String> uploadImage(@PathVariable Long id, @RequestParam MultipartFile file)
 			throws IOException {
